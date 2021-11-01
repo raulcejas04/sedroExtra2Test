@@ -1,0 +1,42 @@
+<div class="clearfix"></div>
+
+<div class="row">
+    <div class="col-lg-10 col-md-10 col-sd-10 col-xs-12 col-lg-offset-1 col-md-offset-1 col-sd-offset-1">
+
+        {% for flashMessage in app.flashes('success') %}
+            <section class="mensajes-flash">
+                <div class="alert alert-success alert-dismissable alertas center-block">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <div class="center-block text-center flash-fonts">{{ flashMessage | raw  }}</div>
+                </div>
+            </section>
+        {% endfor %}
+        {% for flashMessage in app.flashes('warning') %}
+            <section class="mensajes-flash">
+                <div class="alert alert-warning alert-dismissable alertas center-block">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <div class="center-block text-center">{{ flashMessage | raw  }}</div>
+                </div>
+            </section>
+        {% endfor %}
+        {% for flashMessage in app.flashes('danger') %}
+            <section class="mensajes-flash">
+                <div class="alert alert-danger alert-dismissable alertas center-block">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <div class="center-block text-center">{{ flashMessage | raw }}</div>
+                </div>
+            </section>
+        {% endfor %}
+        {% for flashMessage in app.flashes('info') %}
+            <section class="mensajes-flash">
+                <div class="alert alert-info alert-dismissable alertas center-block">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <div class="text-center text-center">{{ flashMessage | raw  }}</div>
+                </div>
+            </section>
+        {% endfor %}
+
+    </div>
+</div>
+
+<div class="clearfix"></div>

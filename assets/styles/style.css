@@ -1,0 +1,42 @@
+/* para que ande el colapsado de los botones */
+
+       .py-2 {
+    	   padding-top: .5rem!important;
+	   padding-bottom: .5rem!important;
+	}
+
+    
+      .bd-sidebar-toggle:hover,
+      .bd-sidebar-toggle:focus {
+        color: #7952b3
+      }
+      
+      .bd-sidebar-toggle:focus {
+        box-shadow: 0 0 0 3px rgba(121, 82, 179, 0.25)
+      }
+      
+      /*.bd-sidebar-toggle .bi-collapse {
+        display: none
+      }
+
+      .bd-sidebar-toggle:not(.collapsed) .bi-collapse {
+        display: inline-block
+      }
+      
+      .bd-sidebar-toggle:not(.collapsed) .bi-expand {
+        display: none
+      }*/
+
+
+      .bd-sidebar-toggle .bi-collapse {
+        display: inline-block
+      }
+
+      .bd-sidebar-toggle:not(.expanded) .bi-collapse {
+        display: none
+      }
+      
+      .bd-sidebar-toggle:not(.expanded) .bi-expand {
+        display: inline-block
+      }
+
