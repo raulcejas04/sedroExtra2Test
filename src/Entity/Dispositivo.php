@@ -20,7 +20,7 @@ class Dispositivo
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=20)
+     * @ORM\Column(type="string", length=100)
      */
     private $nicname;
 
@@ -44,9 +44,20 @@ class Dispositivo
      */
     private $personaJuridica;
 
+    /**
+     * @ORM\OneToMany(targetEntity=UsuarioDispositivo::class, mappedBy="dispositivo")
+     */
+    private $usuarioDispositivos;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=TipoDispositivo::class, inversedBy="dispositivos")
+     */
+    private $tipoDispositivo;
+
     public function __construct()
     {
         $this->solicitudes = new ArrayCollection();
+        $this->usuarioDispositivos = new ArrayCollection();
     }
 
     public function __toString()
@@ -133,6 +144,48 @@ class Dispositivo
     public function setPersonaJuridica(?PersonaJuridica $personaJuridica): self
     {
         $this->personaJuridica = $personaJuridica;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|UsuarioDispositivo[]
+     */
+    public function getUsuarioDispositivos(): Collection
+    {
+        return $this->usuarioDispositivos;
+    }
+
+    public function addUsuarioDispositivo(UsuarioDispositivo $usuarioDispositivo): self
+    {
+        if (!$this->usuarioDispositivos->contains($usuarioDispositivo)) {
+            $this->usuarioDispositivos[] = $usuarioDispositivo;
+            $usuarioDispositivo->setDispositivo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUsuarioDispositivo(UsuarioDispositivo $usuarioDispositivo): self
+    {
+        if ($this->usuarioDispositivos->removeElement($usuarioDispositivo)) {
+            // set the owning side to null (unless already changed)
+            if ($usuarioDispositivo->getDispositivo() === $this) {
+                $usuarioDispositivo->setDispositivo(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getTipoDispositivo(): ?TipoDispositivo
+    {
+        return $this->tipoDispositivo;
+    }
+
+    public function setTipoDispositivo(?TipoDispositivo $tipoDispositivo): self
+    {
+        $this->tipoDispositivo = $tipoDispositivo;
 
         return $this;
     }

@@ -21,7 +21,7 @@ class PersonaJuridica
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=11)
+     * @ORM\Column(type="string", length=13)
      */
     private $cuit;
 

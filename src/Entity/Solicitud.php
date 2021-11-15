@@ -19,17 +19,17 @@ class Solicitud
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=11, nullable=true)
+     * @ORM\Column(type="string", length=13, nullable=true)
      */
     private $cuit;
 
     /**
-     * @ORM\Column(type="string", length=11, nullable=true)
+     * @ORM\Column(type="string", length=13, nullable=true)
      */
     private $cuil;
 
     /**
-     * @ORM\Column(type="string", length=20)
+     * @ORM\Column(type="string", length=150)
      */
     private $nicname;
 
@@ -94,11 +94,16 @@ class Solicitud
     private $usada;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $creacion;
+
+    /**
      * @ORM\PrePersist
      */
     public function setCreatedAtValue(): void
     {
-        $this->fechaAlta = new \DateTimeImmutable();
+        $this->creacion = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -282,6 +287,18 @@ class Solicitud
     public function setUsada(bool $usada): self
     {
         $this->usada = $usada;
+
+        return $this;
+    }
+
+    public function getCreacion(): ?\DateTimeInterface
+    {
+        return $this->creacion;
+    }
+
+    public function setCreacion(?\DateTimeInterface $creacion): self
+    {
+        $this->creacion = $creacion;
 
         return $this;
     }
