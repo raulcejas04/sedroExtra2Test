@@ -86,6 +86,11 @@ class Menu {
      */
     private $items;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaEliminacion;
+
     public function __construct() {
         $this->items = new ArrayCollection();
     }
@@ -211,6 +216,18 @@ class Menu {
                 $item->setMenuId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getFechaEliminacion(): ?\DateTimeInterface
+    {
+        return $this->fechaEliminacion;
+    }
+
+    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
+    {
+        $this->fechaEliminacion = $fechaEliminacion;
 
         return $this;
     }

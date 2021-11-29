@@ -55,6 +55,11 @@ class PersonaJuridica
      */
     private $representaciones;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaEliminacion;
+
     public function __construct()
     {
         $this->solicitudes = new ArrayCollection();
@@ -206,6 +211,18 @@ class PersonaJuridica
                 $representacione->setPersonaJuridica(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getFechaEliminacion(): ?\DateTimeInterface
+    {
+        return $this->fechaEliminacion;
+    }
+
+    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
+    {
+        $this->fechaEliminacion = $fechaEliminacion;
 
         return $this;
     }

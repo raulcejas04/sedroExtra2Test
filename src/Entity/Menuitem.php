@@ -137,6 +137,11 @@ class Menuitem {
      */
     private $menuitems;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaEliminacion;
+
     public function __construct() {
         $this->roles = new ArrayCollection();
         $this->menuitems = new ArrayCollection();
@@ -350,6 +355,18 @@ class Menuitem {
                 $menuitem->setParent(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getFechaEliminacion(): ?\DateTimeInterface
+    {
+        return $this->fechaEliminacion;
+    }
+
+    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
+    {
+        $this->fechaEliminacion = $fechaEliminacion;
 
         return $this;
     }

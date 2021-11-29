@@ -29,6 +29,11 @@ class Representacion
      */
     private $personaJuridica;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaEliminacion;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -54,6 +59,18 @@ class Representacion
     public function setPersonaJuridica(?PersonaJuridica $personaJuridica): self
     {
         $this->personaJuridica = $personaJuridica;
+
+        return $this;
+    }
+
+    public function getFechaEliminacion(): ?\DateTimeInterface
+    {
+        return $this->fechaEliminacion;
+    }
+
+    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
+    {
+        $this->fechaEliminacion = $fechaEliminacion;
 
         return $this;
     }

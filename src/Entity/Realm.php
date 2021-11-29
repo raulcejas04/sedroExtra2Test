@@ -30,19 +30,34 @@ class Realm
     private $idRealmKeycloak;
 
     /**
-     * @ORM\OneToMany(targetEntity=User::class, mappedBy="realm")
-     */
-    private $users;
-
-    /**
      * @ORM\OneToMany(targetEntity=Solicitud::class, mappedBy="realm")
      */
     private $solicitudes;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $keycloakRealmId;
+
+    /**
+     * @ORM\OneToMany(targetEntity=UserRealm::class, mappedBy="realm")
+     */
+    private $userRealms;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaEliminacion;
+
+    public function __toString()
+    {
+        return $this->getRealm();
+    }    
+
     public function __construct()
     {
-        $this->users = new ArrayCollection();
         $this->solicitudes = new ArrayCollection();
+        $this->userRealms = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,36 +90,6 @@ class Realm
     }
 
     /**
-     * @return Collection|User[]
-     */
-    public function getUsers(): Collection
-    {
-        return $this->users;
-    }
-
-    public function addUser(User $user): self
-    {
-        if (!$this->users->contains($user)) {
-            $this->users[] = $user;
-            $user->setRealm($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUser(User $user): self
-    {
-        if ($this->users->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getRealm() === $this) {
-                $user->setRealm(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Solicitud[]
      */
     public function getSolicitudes(): Collection
@@ -130,6 +115,60 @@ class Realm
                 $solicitude->setRealm(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getKeycloakRealmId(): ?string
+    {
+        return $this->keycloakRealmId;
+    }
+
+    public function setKeycloakRealmId(string $keycloakRealmId): self
+    {
+        $this->keycloakRealmId = $keycloakRealmId;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|UserRealm[]
+     */
+    public function getUserRealms(): Collection
+    {
+        return $this->userRealms;
+    }
+
+    public function addUserRealm(UserRealm $userRealm): self
+    {
+        if (!$this->userRealms->contains($userRealm)) {
+            $this->userRealms[] = $userRealm;
+            $userRealm->setRealm($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserRealm(UserRealm $userRealm): self
+    {
+        if ($this->userRealms->removeElement($userRealm)) {
+            // set the owning side to null (unless already changed)
+            if ($userRealm->getRealm() === $this) {
+                $userRealm->setRealm(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getFechaEliminacion(): ?\DateTimeInterface
+    {
+        return $this->fechaEliminacion;
+    }
+
+    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
+    {
+        $this->fechaEliminacion = $fechaEliminacion;
 
         return $this;
     }

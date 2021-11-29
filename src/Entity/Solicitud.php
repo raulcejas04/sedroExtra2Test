@@ -99,6 +99,11 @@ class Solicitud
     private $creacion;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $fechaEliminacion;
+
+    /**
      * @ORM\PrePersist
      */
     public function setCreatedAtValue(): void
@@ -299,6 +304,18 @@ class Solicitud
     public function setCreacion(?\DateTimeInterface $creacion): self
     {
         $this->creacion = $creacion;
+
+        return $this;
+    }
+
+    public function getFechaEliminacion(): ?\DateTimeInterface
+    {
+        return $this->fechaEliminacion;
+    }
+
+    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
+    {
+        $this->fechaEliminacion = $fechaEliminacion;
 
         return $this;
     }

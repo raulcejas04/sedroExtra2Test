@@ -30,20 +30,18 @@ class TipoDispositivo
     private $dispositivos;
 
     /**
-     * @ORM\OneToMany(targetEntity=Grupo::class, mappedBy="tipoDispositivo")
+     * @ORM\OneToOne(targetEntity=Grupo::class, inversedBy="tipoDispositivo", cascade={"persist", "remove"})
      */
-    private $grupos;
-
-    /**
-     * @ORM\OneToMany(targetEntity=Rol::class, mappedBy="tipoDispositivo")
-     */
-    private $roles;
+    private $grupo;
 
     public function __construct()
     {
         $this->dispositivos = new ArrayCollection();
-        $this->grupos = new ArrayCollection();
-        $this->roles = new ArrayCollection();
+    }
+
+    public function __toString()
+    {
+        return $this->getNombre();
     }
 
     public function getId(): ?int
@@ -93,63 +91,17 @@ class TipoDispositivo
         return $this;
     }
 
-    /**
-     * @return Collection|Grupo[]
-     */
-    public function getGrupos(): Collection
+    public function getGrupo(): ?Grupo
     {
-        return $this->grupos;
+        return $this->grupo;
     }
 
-    public function addGrupo(Grupo $grupo): self
+    public function setGrupo(?Grupo $grupo): self
     {
-        if (!$this->grupos->contains($grupo)) {
-            $this->grupos[] = $grupo;
-            $grupo->setTipoDispositivo($this);
-        }
+        $this->grupo = $grupo;
 
         return $this;
     }
 
-    public function removeGrupo(Grupo $grupo): self
-    {
-        if ($this->grupos->removeElement($grupo)) {
-            // set the owning side to null (unless already changed)
-            if ($grupo->getTipoDispositivo() === $this) {
-                $grupo->setTipoDispositivo(null);
-            }
-        }
 
-        return $this;
-    }
-
-    /**
-     * @return Collection|Rol[]
-     */
-    public function getRoles(): Collection
-    {
-        return $this->roles;
-    }
-
-    public function addRole(Rol $role): self
-    {
-        if (!$this->roles->contains($role)) {
-            $this->roles[] = $role;
-            $role->setTipoDispositivo($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRole(Rol $role): self
-    {
-        if ($this->roles->removeElement($role)) {
-            // set the owning side to null (unless already changed)
-            if ($role->getTipoDispositivo() === $this) {
-                $role->setTipoDispositivo(null);
-            }
-        }
-
-        return $this;
-    }
 }

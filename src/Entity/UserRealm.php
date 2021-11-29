@@ -2,31 +2,32 @@
 
 namespace App\Entity;
 
+use App\Repository\UserRealmRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=RolemenuRepository::class)
+ * @ORM\Entity(repositoryClass=UserRealmRepository::class)
  */
-class Rolemenu {
-
+class UserRealm
+{
     /**
      * @ORM\Id
+     * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Menuitem::class, inversedBy="roles")
-     * @ORM\JoinColumn(name="menu_id", referencedColumnName="id")
+     * @ORM\ManyToOne(targetEntity=Realm::class, inversedBy="userRealms")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private $menuId;
+    private $realm;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Role::class, inversedBy="menus")
-     * @ORM\JoinColumn(name="role_id", referencedColumnName="id")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="userRealms")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private $role;
+    private $usuario;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -38,26 +39,26 @@ class Rolemenu {
         return $this->id;
     }
 
-    public function getMenuId(): ?Menuitem
+    public function getRealm(): ?Realm
     {
-        return $this->menuId;
+        return $this->realm;
     }
 
-    public function setMenuId(?Menuitem $menuId): self
+    public function setRealm(?Realm $realm): self
     {
-        $this->menuId = $menuId;
+        $this->realm = $realm;
 
         return $this;
     }
 
-    public function getRole(): ?Role
+    public function getUsuario(): ?User
     {
-        return $this->role;
+        return $this->usuario;
     }
 
-    public function setRole(?Role $role): self
+    public function setUsuario(?User $usuario): self
     {
-        $this->role = $role;
+        $this->usuario = $usuario;
 
         return $this;
     }
@@ -73,5 +74,4 @@ class Rolemenu {
 
         return $this;
     }
-
 }
