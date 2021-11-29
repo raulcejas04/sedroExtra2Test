@@ -1,0 +1,73 @@
+<div class="m-6">
+    <nav class="navbar navbar-expand-lg navbar-light bgsedronar">
+        <div class="container-fluid">
+             <a class="navbar-brand" href="#" style="margin-right: auto;" aria-label="SEDRONAR Presidencia de la Nación"> 
+              <img alt="sedronar" src="../img/logoSedronar.png" height="40px"> 
+          </a> 
+          <a class="navbar-brand"  href="#" aria-label="Jefatura de Gabinete de Ministros Argentina"> 
+              <img alt="Jefatura de Gabinete de Ministros Argentina" src="../img/jefgabinetearg.png" height="50px"> 
+          </a> 
+            <button type="button" class="navbar-toggler navbar-dark" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <div class="navbar-nav ">
+{#
+                    {% if items[0] is defined %}
+            
+                        {% for id_n0, props_n0 in items[0] %}
+                            {%  if props_n0.link =='' %}
+                            {%  set lnk = "#"  %}
+                            {%  else  %}
+                                {%  set lnk = app.request.baseUrl ~ '/' ~ props_n0.link  %}
+                            {%  endif %}
+
+
+                        <div class="nav-item {% if items[props_n0['id']] is defined %}dropdown{% endif %}">
+                            <a href="{{ lnk }}" class="text-white nav-link {% if items[props_n0['id']] is defined %}dropdown-toggle{% endif %}" {% if items[props_n0['id']] is defined %} data-bs-toggle="dropdown" {% endif %}  >{{ props_n0.nombre }}</a>
+                            <div class="dropdown-menu bgsedronar">
+
+                            {% if items[props_n0['id']] is defined %}
+                                {% for id_n1, props_n1 in items[props_n0['id']] %}
+                            
+                                    {% set link = "#" %}
+                                    {% if props_n1.link is defined and props_n1.link!= "" %}                                    
+                                    {% set link = props_n1.link %}
+                                    {% endif %}
+                                    <a href="{{ app.request.baseUrl ~ '/' ~ link }}" class="dropdown-item text-white"> {% if props_n1['icon']!='' %}<span class="{{props_n1.icon}}"></span>{% endif %} {{props_n1.nombre}}</a>
+                                
+                                {% endfor %}
+                            {% endif %}
+                            </div>
+                            </div>
+                        {% endfor %}
+            
+                    {% endif %}
+                    #}
+                </div>
+
+
+<!-- ///////////////// -->
+               
+
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <a href="#" class="text-white nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fs-4 bi bi-person-circle"></i> {{ app.user }} Diego Castaño</a>
+                    <div class="dropdown-menu bgsedronar">
+                        <a href="{{ path('change_password') }}" class="text-white dropdown-item">Cambio de clave</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ path('oauth_logout') }}" class="dropdown-item text-white">Desconectarse</a>
+                    </div>
+                {% else %}
+                    <a href="#" class="text-white nav-link dropdown-toggle" data-bs-toggle="dropdown">Login</a>
+                    <div class="dropdown-menu bgsedronar">
+                        <a href="{{ path('dashboard') }}" class="text-white dropdown-item">Ingresar</a>
+                    </div>
+                {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </nav>
+</div>
