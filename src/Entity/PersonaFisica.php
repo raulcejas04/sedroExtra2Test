@@ -47,6 +47,7 @@ class PersonaFisica
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="personaFisica")
+     * //TODO: Puede una persona Física tener varios usuarios???
      */
     private $users;
 
@@ -99,12 +100,18 @@ class PersonaFisica
      */
     private $admisiones;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Invitacion::class, mappedBy="personaFisica")
+     */
+    private $invitaciones;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
         $this->solicitudes = new ArrayCollection();
         $this->representaciones = new ArrayCollection();
         $this->admisiones = new ArrayCollection();
+        $this->invitaciones = new ArrayCollection();
     }
 
     public function __toString()
@@ -370,6 +377,36 @@ class PersonaFisica
     {
         if ($this->admisiones->removeElement($admisione)) {
             $admisione->removePersonaFisica($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Invitacion[]
+     */
+    public function getInvitaciones(): Collection
+    {
+        return $this->invitaciones;
+    }
+
+    public function addInvitacione(Invitacion $invitacione): self
+    {
+        if (!$this->invitaciones->contains($invitacione)) {
+            $this->invitaciones[] = $invitacione;
+            $invitacione->setPersonaFisica($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInvitacione(Invitacion $invitacione): self
+    {
+        if ($this->invitaciones->removeElement($invitacione)) {
+            // set the owning side to null (unless already changed)
+            if ($invitacione->getPersonaFisica() === $this) {
+                $invitacione->setPersonaFisica(null);
+            }
         }
 
         return $this;

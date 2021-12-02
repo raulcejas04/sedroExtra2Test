@@ -1,0 +1,156 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+  Mis Invitaciones
+{% endblock %}
+
+{% block body %}
+  <h2 class="text-center">
+    Mis Invitaciones
+  </h2>
+  <div class="row justify-content-md-center">
+    <div class="col-10">
+      <div class="text-center">
+        <div class="center-block">
+          <a href="{{ path('nueva_invitacion') }}"
+            class="btn btn-success btn-sm">
+            Nueva invitacion
+          </a>
+        </div>
+      </div>
+      <br />
+      <br />
+      <br />
+
+      <table class="table table-striped table-hover" id="tablaSolicitudes">
+        <thead>
+          <tr>
+            <th class="text-center">
+              Ver
+            </th>
+            <th class="text-center">
+              Nombre (PF)
+            </th>
+            <th class="text-center">
+              Razón Social (PJ)
+            </th>
+            <th class="text-center">
+              Estado
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for solicitud in invitaciones %}
+            <tr>
+              <td class="text-center align-middle">
+                {% if solicitud.usada %}
+                  <a href="#">
+                    <i class="align-middle" data-feather="eye"></i> ver
+                  </a>
+                {% endif %}
+              </td>
+
+              <td class="text-left">
+                <ul>
+                  {% if solicitud.personaFisica %}
+                    <li>
+                      {{ solicitud.personaFisica.apellido }}, {{
+                        solicitud.personaFisica.nombres
+                      }}
+                    </li>
+                    {% if solicitud.personaFisica.cuitCuil %}
+                      <li>
+                        <b>CUIT:</b>{{ solicitud.personaFisica.cuitCuil }}
+                      </li>
+                    {% endif %}
+                  {% else %}
+                    <li>S/D</li>
+                  {% endif %}
+                </ul>
+              </td>
+
+              <td class="text-left align-middle">
+                <ul>
+                  {% if solicitud.personaJuridica %}
+                    <li>{{ solicitud.personaJuridica.razonSocial }}</li>
+                    {% if solicitud.personaJuridica.cuit %}
+                      <li><b>CUIT:</b>{{ solicitud.personaJuridica.cuit }}</li>
+                    {% endif %}
+                  {% else %}
+                    <li>S/D</li>
+                  {% endif %}
+                </ul>
+              </td>
+
+              <td class="text-left align-middle">
+                {% if solicitud.dispositivo %}
+                  {{ solicitud.dispositivo.nicname }}
+                {% else %}
+                  S/D
+                {% endif %}
+              </td>
+
+              <td class="text-left align-middle">
+                <ul>
+                  <li>
+                    <b>Invitación:</b> {{ solicitud.creacion|date('d/m/Y') }}
+                  </li>
+
+                  {% if solicitud.fechaUso %}
+                    <li><b>uso:</b> {{ solicitud.fechaUso|date('d/m/Y') }}</li>
+                  {% endif %}
+                  {% if solicitud.fechaAlta %}
+                    <li>
+                      <b>alta:</b> {{ solicitud.fechaAlta|date('d/m/Y') }}
+                    </li>
+                  {% endif %}
+                </ul>
+              </td>
+              <td class="text-left align-middle">
+                {% if solicitud.fechaAlta %}
+                  <span class="badge rounded-pill bg-success">Alta</span>
+                {% endif %}
+
+                {% if solicitud.correccion %}
+                  <span class="badge rounded-pill bg-warning">Rechazado</span>
+                {% endif %}
+
+                {% if
+                  solicitud.fechaAlta == null
+                    and solicitud.correccion == null %}
+                  <span class="badge rounded-pill bg-danger">
+                    NECESITA ATENCIÓN!
+                  </span>
+                {% endif %}
+
+                {% if solicitud.fechaUso == null %}
+                  <span class="badge rounded-pill bg-info">
+                    Esperando datos
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <br />
+      <br />
+      <br />
+      <div class="text-center">
+        <div class="center-block">
+          <a href="{{ path('nueva_invitacion') }}"
+            class="btn btn-success btn-sm">
+            Nueva invitacion
+          </a>
+        </div>
+      </div>
+      <br />
+      <br />
+      <br />.
+    </div>
+  </div>
+  <br />
+  <br />
+  <br />
+  <br />
+{% endblock %}

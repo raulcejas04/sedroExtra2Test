@@ -64,11 +64,17 @@ class Dispositivo
      */
     private $admisiones;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Invitacion::class, mappedBy="dispositivo")
+     */
+    private $invitaciones;
+
     public function __construct()
     {
         $this->solicitudes = new ArrayCollection();
         $this->usuarioDispositivos = new ArrayCollection();
         $this->admisiones = new ArrayCollection();
+        $this->invitaciones = new ArrayCollection();
     }
 
     public function __toString()
@@ -237,6 +243,36 @@ class Dispositivo
             // set the owning side to null (unless already changed)
             if ($admisione->getDispositivo() === $this) {
                 $admisione->setDispositivo(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Invitacion[]
+     */
+    public function getInvitaciones(): Collection
+    {
+        return $this->invitaciones;
+    }
+
+    public function addInvitacione(Invitacion $invitacione): self
+    {
+        if (!$this->invitaciones->contains($invitacione)) {
+            $this->invitaciones[] = $invitacione;
+            $invitacione->setDispositivo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInvitacione(Invitacion $invitacione): self
+    {
+        if ($this->invitaciones->removeElement($invitacione)) {
+            // set the owning side to null (unless already changed)
+            if ($invitacione->getDispositivo() === $this) {
+                $invitacione->setDispositivo(null);
             }
         }
 
