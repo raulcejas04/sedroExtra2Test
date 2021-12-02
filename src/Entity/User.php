@@ -49,7 +49,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     private $username;
 
     /**
-     * @ORM\ManyToOne(targetEntity=PersonaFisica::class, inversedBy="users")
+     * @ORM\OneToOne(targetEntity=PersonaFisica::class, inversedBy="user")
      */
     private $personaFisica;
 

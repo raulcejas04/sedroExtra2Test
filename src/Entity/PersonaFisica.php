@@ -46,10 +46,9 @@ class PersonaFisica
     private $fechaNac;
 
     /**
-     * @ORM\OneToMany(targetEntity=User::class, mappedBy="personaFisica")
-     * //TODO: Puede una persona Física tener varios usuarios???
+     * @ORM\OneToOne(targetEntity=User::class, mappedBy="personaFisica")
      */
-    private $users;
+    private $user;
 
     /**
      * @ORM\ManyToOne(targetEntity=TipoCuitCuil::class, inversedBy="personasFisicas")
@@ -107,7 +106,6 @@ class PersonaFisica
 
     public function __construct()
     {
-        $this->users = new ArrayCollection();
         $this->solicitudes = new ArrayCollection();
         $this->representaciones = new ArrayCollection();
         $this->admisiones = new ArrayCollection();
@@ -124,7 +122,7 @@ class PersonaFisica
      */
     public function setUppers(): void
     {
-        $this->setApellido(mb_convert_case($this->getApellido(), MB_CASE_UPPER, "UTF-8"));        
+        $this->setApellido(mb_convert_case($this->getApellido(), MB_CASE_UPPER, "UTF-8"));
         $this->setNombres(mb_convert_case($this->getNombres(), MB_CASE_TITLE, "UTF-8"));
     }
 
@@ -189,36 +187,6 @@ class PersonaFisica
     public function setFechaNac(?\DateTimeInterface $fechaNac): self
     {
         $this->fechaNac = $fechaNac;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|User[]
-     */
-    public function getUsers(): Collection
-    {
-        return $this->users;
-    }
-
-    public function addUser(User $user): self
-    {
-        if (!$this->users->contains($user)) {
-            $this->users[] = $user;
-            $user->setPersonaFisica($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUser(User $user): self
-    {
-        if ($this->users->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getPersonaFisica() === $this) {
-                $user->setPersonaFisica(null);
-            }
-        }
 
         return $this;
     }
@@ -408,6 +376,26 @@ class PersonaFisica
                 $invitacione->setPersonaFisica(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * Get the value of user
+     */
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    /**
+     * Set the value of user
+     *
+     * @return  self
+     */
+    public function setUser($user)
+    {
+        $this->user = $user;
 
         return $this;
     }

@@ -8,6 +8,7 @@ parameters:
     keycloak_secret:              '%env(KEYCLOAK_SECRET)%'
     keycloak_clientid:            '%env(KEYCLOAK_CLIENTID)%'
     keycloak_url:                 '%env(KEYCLOAK_APP_URL)%'
+    direccion_email_salida:       '%env(DIRECCION_EMAIL_SALIDA_SOLICITUD)%'
 
 services:
     # default configuration for services in *this* file

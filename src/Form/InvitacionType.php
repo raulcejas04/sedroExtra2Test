@@ -37,7 +37,7 @@ class InvitacionType extends AbstractType
                     ->join('d.personaJuridica', 'pj')
                     ->join('pj.representaciones', 'r')
                     ->join('r.personaFisica', 'pf')
-                    ->join('pf.users', 'u')
+                    ->join('pf.user', 'u')
                     ->where('u.id = :user')
                     ->setParameter('user', $this->token->getToken()->getUser()->getId())
                     ->orderBy('d.nicname', 'ASC');

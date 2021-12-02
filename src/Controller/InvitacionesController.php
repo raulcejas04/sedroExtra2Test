@@ -6,12 +6,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
 
 use App\Entity\Invitacion;
 use App\Entity\PersonaFisica;
 use App\Form\InvitacionType;
-use App\Entity\PersonaFisica;
-
+use DateTime;
 
 #[Route('/dashboard/invitaciones/',)]
 class InvitacionesController extends AbstractController
@@ -28,7 +29,7 @@ class InvitacionesController extends AbstractController
     }
 
     #[Route('nueva-invitacion', name: 'nueva_invitacion')]
-    public function nuevaInvitacion(Request $request): Response
+    public function nuevaInvitacion(Request $request,MailerInterface $mailer): Response
     {
         $invitacion = new Invitacion();
         $form = $this->createForm(InvitacionType::class, $invitacion);
@@ -43,10 +44,20 @@ class InvitacionesController extends AbstractController
             if ($persona == null) {
                 $persona = new PersonaFisica();
                 $persona->setCuitCuil($cuitInvitado);
-                $persona->setNombre($invitacion->getPersonaFisica()->getNombre());
+                $persona->setNombres($invitacion->getPersonaFisica()->getNombres());
                 $persona->setApellido($invitacion->getPersonaFisica()->getApellido());
-                $persona->setEmail($invitacion->getPersonaFisica()->getEmail());
-                $persona->setTelefono($invitacion->getPersonaFisica()->getTelefono());
+                $persona->setTipoCuitCuil($invitacion->getPersonaFisica()->getTipoCuitCuil());
+                $persona->setSexo($invitacion->getPersonaFisica()->getSexo());
+                $persona->setNacionalidad($invitacion->getPersonaFisica()->getNacionalidad());
+                $persona->setTipoDocumento($invitacion->getPersonaFisica()->getTipoDocumento());
+                $persona->setNroDoc($invitacion->getPersonaFisica()->getNroDoc());
+                //TODO: Crear usuario en keycloak y asignar valores al usuario.
+               
+               // $persona->setEmail($invitacion->getPersonaFisica()->getEmail());
+               // $persona->setTelefono($invitacion->getPersonaFisica()->getTelefono());
+                
+               //TODO: Asignar grupo segun corresponda
+                
                 $entityManager->persist($persona);
             } else {
                 $invitacion->setPersonaFisica($persona);
@@ -65,7 +76,23 @@ class InvitacionesController extends AbstractController
                 return $this->redirectToRoute('nueva_invitacion');
             }
 
+            
+            $email = (new TemplatedEmail())
+            ->from($this->getParameter('direccion_email_salida'))
+            ->to('target@correo.com')
+            ->subject('Invitación a Dispositivo')            
+            ->htmlTemplate('emails/invitacionDispositivo.html.twig')
+            ->context([
+                'nombre' => $persona->__toString(),
+                'dispositivo'=>$invitacion->getDispositivo()->getNicname(),
+                'hash' => $invitacion->getHash()
+            ]);
+            
+            $mailer->send($email);
+
+            dd($invitacion);
             $invitacion->setOrigen($origen);
+            $invitacion->prePersist();
             $entityManager->persist($invitacion);
             $entityManager->flush();
 

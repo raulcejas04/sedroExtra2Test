@@ -48,7 +48,7 @@ class Invitacion
     private $hash;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime",nullable=true)
      */
     private $fechaUso;
 
