@@ -8,7 +8,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 
 use App\Entity\Invitacion;
+use App\Entity\PersonaFisica;
 use App\Form\InvitacionType;
+use App\Entity\PersonaFisica;
+
 
 #[Route('/dashboard/invitaciones/',)]
 class InvitacionesController extends AbstractController
@@ -27,18 +30,40 @@ class InvitacionesController extends AbstractController
     #[Route('nueva-invitacion', name: 'nueva_invitacion')]
     public function nuevaInvitacion(Request $request): Response
     {
-        $entityManager = $this->getDoctrine()->getManager();
-
-
-
         $invitacion = new Invitacion();
         $form = $this->createForm(InvitacionType::class, $invitacion);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            
+            $entityManager = $this->getDoctrine()->getManager();
+
+            $cuitInvitado = $invitacion->getPersonaFisica()->getCuitCuil();
+            $persona = $this->getDoctrine()->getRepository(PersonaFisica::class)->findOneBy(['cuitCuil' => $cuitInvitado]);
+
+            if ($persona == null) {
+                $persona = new PersonaFisica();
+                $persona->setCuitCuil($cuitInvitado);
+                $persona->setNombre($invitacion->getPersonaFisica()->getNombre());
+                $persona->setApellido($invitacion->getPersonaFisica()->getApellido());
+                $persona->setEmail($invitacion->getPersonaFisica()->getEmail());
+                $persona->setTelefono($invitacion->getPersonaFisica()->getTelefono());
+                $entityManager->persist($persona);
+            } else {
+                $invitacion->setPersonaFisica($persona);
+            }
+
 
             $origen = $this->getUser()->getPersonaFisica();
+
+            if ($invitacion->getPersonaFisica()->getId() == $origen->getId()) {
+                $this->addFlash('error', 'No puedes invitarte a ti mismo.');
+                return $this->redirectToRoute('nueva_invitacion');
+            }
+
+            if ($this->getDoctrine()->getRepository(Invitacion::class)->findOneBy(['personaFisica' => $invitacion->getPersonaFisica(), 'dispositivo' => $invitacion->getDispositivo()])) {
+                $this->addFlash('error', 'Ya has enviado una invitación a esta persona.');
+                return $this->redirectToRoute('nueva_invitacion');
+            }
 
             $invitacion->setOrigen($origen);
             $entityManager->persist($invitacion);
