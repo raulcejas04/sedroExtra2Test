@@ -9,7 +9,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use App\Form\PersonaFisicaCollectionType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Doctrine\ORM\EntityRepository;
-USE Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 
 class InvitacionType extends AbstractType
@@ -20,27 +22,27 @@ class InvitacionType extends AbstractType
 
     public function __construct(TokenStorageInterface $token)
     {
-       $this->token = $token;
+        $this->token = $token;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            
+
             ->add('dispositivo', EntityType::class, [
                 'class' => 'App:Dispositivo',
                 'placeholder' => '-- Seleccionar Dispositivo --',
-                
+
                 //query para mostrar en el select los dispositivos a cargo del usuario
                 'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('d')
-                    ->join('d.personaJuridica', 'pj')
-                    ->join('pj.representaciones', 'r')
-                    ->join('r.personaFisica', 'pf')
-                    ->join('pf.user', 'u')
-                    ->where('u.id = :user')
-                    ->setParameter('user', $this->token->getToken()->getUser()->getId())
-                    ->orderBy('d.nicname', 'ASC');
+                        ->join('d.personaJuridica', 'pj')
+                        ->join('pj.representaciones', 'r')
+                        ->join('r.personaFisica', 'pf')
+                        ->join('pf.user', 'u')
+                        ->where('u.id = :user')
+                        ->setParameter('user', $this->token->getToken()->getUser()->getId())
+                        ->orderBy('d.nicname', 'ASC');
                 },
                 'choice_label' => 'nicname',
                 'choice_value' => 'id',
@@ -49,8 +51,17 @@ class InvitacionType extends AbstractType
             ])
 
             ->add('personaFisica', PersonaFisicaCollectionType::class)
-            
-        ;
+            ->add('email', RepeatedType::class, [
+                'type' => EmailType::class,
+                'mapped' => false,
+                'options' => [
+                    'attr' => [
+                        'class' => 'form-control'
+                    ],
+                ],
+                'first_options'  => ['label' => 'Email'],
+                'second_options' => ['label' => 'Repetir Email'],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

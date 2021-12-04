@@ -46,7 +46,7 @@ class PersonaFisica
     private $fechaNac;
 
     /**
-     * @ORM\OneToOne(targetEntity=User::class, mappedBy="personaFisica")
+     * @ORM\OneToOne(targetEntity=User::class, mappedBy="personaFisica",cascade={"persist"})
      */
     private $user;
 
