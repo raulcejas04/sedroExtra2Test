@@ -20,9 +20,9 @@ class Grupo {
     private $id;
 
     /**
-     * @ORM\ManyToMany(targetEntity=User::class, inversedBy="grupos")
+     * @ORM\OneToMany(targetEntity=UserGrupo::class, mappedBy="grupo",cascade={"persist"})
      */
-    private $usuarios;
+    private $groupUsers;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -49,36 +49,11 @@ class Grupo {
     }
 
     public function __construct() {
-        $this->usuarios = new ArrayCollection();
+        $this->groupUsers = new ArrayCollection();
     }
 
     public function getId(): ?int {
         return $this->id;
-    }
-
-    /**
-     * @return Collection|User[]
-     */
-    public function getUsuarios(): Collection {
-        return $this->usuarios;
-    }
-
-    public function addUsuario(User $usuario): self {
-        if (!$this->usuarios->contains($usuario)) {
-            $this->usuarios[] = $usuario;
-            $usuario->addGrupo($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUsuario(User $usuario): self {
-        if ($this->usuarios->removeElement($usuario)) {
-            $usuario->removeGrupo($this);
-        }
-
-
-        return $this;
     }
 
     public function getKeycloakGroupId(): ?string {
@@ -127,6 +102,36 @@ class Grupo {
 
     public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self {
         $this->fechaEliminacion = $fechaEliminacion;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|UserGrupo[]
+     */
+    public function getGroupUsers(): Collection
+    {
+        return $this->groupUsers;
+    }
+
+    public function addGroupUser(UserGrupo $groupUser): self
+    {
+        if (!$this->groupUsers->contains($groupUser)) {
+            $this->groupUsers[] = $groupUser;
+            $groupUser->setGrupo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGroupUser(UserGrupo $groupUser): self
+    {
+        if ($this->groupUsers->removeElement($groupUser)) {
+            // set the owning side to null (unless already changed)
+            if ($groupUser->getGrupo() === $this) {
+                $groupUser->setGrupo(null);
+            }
+        }
 
         return $this;
     }

@@ -32,7 +32,9 @@
               Nombre (PF)
             </th>
             <th class="text-center">
-              Razón Social (PJ)
+              Dispositivo
+            </th>
+            <th>
             </th>
             <th class="text-center">
               Estado
@@ -42,12 +44,11 @@
         <tbody>
           {% for solicitud in invitaciones %}
             <tr>
+           
               <td class="text-center align-middle">
-                {% if solicitud.usada %}
-                  <a href="#">
+                  <a href="{{path('ver_invitacion',{'hash':solicitud.hash})}}">
                     <i class="align-middle" data-feather="eye"></i> ver
                   </a>
-                {% endif %}
               </td>
 
               <td class="text-left">
@@ -69,63 +70,52 @@
                 </ul>
               </td>
 
-              <td class="text-left align-middle">
-                <ul>
-                  {% if solicitud.personaJuridica %}
-                    <li>{{ solicitud.personaJuridica.razonSocial }}</li>
-                    {% if solicitud.personaJuridica.cuit %}
-                      <li><b>CUIT:</b>{{ solicitud.personaJuridica.cuit }}</li>
-                    {% endif %}
-                  {% else %}
-                    <li>S/D</li>
-                  {% endif %}
-                </ul>
+              <td class="text-center align-middle">
+                 {{ solicitud.dispositivo.nicname }}
               </td>
 
-              <td class="text-left align-middle">
+              {# <td class="text-left align-middle">
                 {% if solicitud.dispositivo %}
                   {{ solicitud.dispositivo.nicname }}
                 {% else %}
                   S/D
                 {% endif %}
-              </td>
+              </td> #}
 
-              <td class="text-left align-middle">
-                <ul>
-                  <li>
-                    <b>Invitación:</b> {{ solicitud.creacion|date('d/m/Y') }}
-                  </li>
-
-                  {% if solicitud.fechaUso %}
-                    <li><b>uso:</b> {{ solicitud.fechaUso|date('d/m/Y') }}</li>
-                  {% endif %}
-                  {% if solicitud.fechaAlta %}
-                    <li>
-                      <b>alta:</b> {{ solicitud.fechaAlta|date('d/m/Y') }}
-                    </li>
-                  {% endif %}
-                </ul>
-              </td>
-              <td class="text-left align-middle">
-                {% if solicitud.fechaAlta %}
+              <td class="align-middle">
+              <ul>
+                <li>Fecha Invitación: {{solicitud.fechaInvitacion|date('d/m/Y')}}</li>
+                {% if solicitud.fechaUso %}
+                    <li>Fecha de Uso: {{solicitud.fechaUso|date('d/m/Y')}}</li>
+                {% endif %}
+              </ul>
+            </td>
+              <td class="text-center align-middle">
+                {% if solicitud.fechaInvitacion and solicitud.fechaUso is null %}
                   <span class="badge rounded-pill bg-success">Alta</span>
                 {% endif %}
-
-                {% if solicitud.correccion %}
-                  <span class="badge rounded-pill bg-warning">Rechazado</span>
+                {% if solicitud.aceptada and solicitud.fechaUso %}
+                   <span class="badge rounded-pill bg-primary">Aceptada</span>
+                {% elseif solicitud.aceptada == false and solicitud.fechaUso %}
+                   <span class="badge rounded-pill bg-danger">Rechazada</span>
                 {% endif %}
 
-                {% if
+{# 
+                {% if solicitud.correccion %}
+                  <span class="badge rounded-pill bg-warning">Rechazado</span>
+                {% endif %} #}
+
+  {#               {% if
                   solicitud.fechaAlta == null
                     and solicitud.correccion == null %}
                   <span class="badge rounded-pill bg-danger">
                     NECESITA ATENCIÓN!
                   </span>
-                {% endif %}
+                {% endif %} #}
 
                 {% if solicitud.fechaUso == null %}
                   <span class="badge rounded-pill bg-info">
-                    Esperando datos
+                    Esperando confirmación
                   </span>
                 {% endif %}
               </td>

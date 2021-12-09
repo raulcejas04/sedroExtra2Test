@@ -63,10 +63,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
      */
     private $usuarioDispositivos;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Grupo::class, mappedBy="usuarios")
+     /**
+     * @ORM\OneToMany(targetEntity=UserGrupo::class, mappedBy="usuario",cascade={"persist"})
      */
-    private $grupos;
+    private $userGroups;
 
     /**
      * @ORM\OneToMany(targetEntity=UserRealm::class, mappedBy="usuario")
@@ -86,7 +86,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     public function __construct() {
         $this->solicitudes = new ArrayCollection();
         $this->usuarioDispositivos = new ArrayCollection();
-        $this->grupos = new ArrayCollection();
+        $this->userGroups = new ArrayCollection();
         $this->userRealms = new ArrayCollection();
         $this->alertas = new ArrayCollection();
     }
@@ -255,30 +255,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     }
 
     /**
-     * @return Collection|Grupo[]
-     */
-    public function getGrupos(): Collection {
-        return $this->grupos;
-    }
-
-    public function addGrupo(Grupo $grupo): self {
-        if (!$this->grupos->contains($grupo)) {
-            $this->grupos[] = $grupo;
-            $grupo->addUsuario($this);
-        }
-
-        return $this;
-    }
-
-    public function removeGrupo(Grupo $grupo): self {
-        if ($this->grupos->removeElement($grupo)) {
-            $grupo->removeUsuario($this);
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|UserRealm[]
      */
     public function getUserRealms(): Collection {
@@ -338,6 +314,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
 
     public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self {
         $this->fechaEliminacion = $fechaEliminacion;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|UserGrupo[]
+     */
+    public function getUserGroups(): Collection
+    {
+        return $this->userGroups;
+    }
+
+    public function addUserGroup(UserGrupo $userGroup): self
+    {
+        if (!$this->userGroups->contains($userGroup)) {
+            $this->userGroups[] = $userGroup;
+            $userGroup->setUsuario($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserGroup(UserGrupo $userGroup): self
+    {
+        if ($this->userGroups->removeElement($userGroup)) {
+            // set the owning side to null (unless already changed)
+            if ($userGroup->getUsuario() === $this) {
+                $userGroup->setUsuario(null);
+            }
+        }
 
         return $this;
     }

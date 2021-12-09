@@ -12,6 +12,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use App\Entity\Invitacion;
 use App\Entity\PersonaFisica;
 use App\Entity\User;
+use App\Entity\UsuarioDispositivo;
 use App\Form\InvitacionType;
 use App\Service\IntranetService;
 use App\Service\KeycloakApiSrv;
@@ -27,6 +28,20 @@ class InvitacionesController extends AbstractController
     public function __construct(IntranetService $srv)
     {
         $this->intranetService = $srv;
+    }
+
+
+    #[Route('ver-invitacion/{hash}', name: 'ver_invitacion')]
+    public function verInvitacion($hash): Response
+    {
+        $invitacion = $this->getDoctrine()->getManager()->getRepository(Invitacion::class)->findOneBy([
+            "hash" => $hash
+        ]);
+        $response = $this->renderView('invitaciones/verInvitacion.html.twig', [
+            'invitacion' => $invitacion,
+        ]);
+
+        return new Response($response);
     }
 
     #[Route('mis-invitaciones', name: 'mis_invitaciones')]
@@ -53,6 +68,9 @@ class InvitacionesController extends AbstractController
             $cuitInvitado = $invitacion->getPersonaFisica()->getCuitCuil();
             $persona = $this->getDoctrine()->getRepository(PersonaFisica::class)->findOneBy(['cuitCuil' => $cuitInvitado]);
 
+            //TODO:Validar que el usuario no tenga una invitación al dispositivo pendiente.
+            //TODO: Validar que el usuario no se encuentre ya asociado al dispositivo.
+
             if ($persona == null) {
                 $persona = new PersonaFisica();
                 $persona->setCuitCuil($cuitInvitado);
@@ -63,35 +81,10 @@ class InvitacionesController extends AbstractController
                 $persona->setNacionalidad($invitacion->getPersonaFisica()->getNacionalidad());
                 $persona->setTipoDocumento($invitacion->getPersonaFisica()->getTipoDocumento());
                 $persona->setNroDoc($invitacion->getPersonaFisica()->getNroDoc());
+                $persona->setEstadoCivil($invitacion->getPersonaFisica()->getEstadoCivil());
                 $entityManager->persist($persona);
-            } else {
-                $invitacion->setPersonaFisica($persona);
             }
-            //TODO: Crear usuario en keycloak y asignar valores al usuario.
-            if (!$persona->getUser()) {
-                $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
-                //Crea usuario en keycloak y en la tabla usuarios
-                $user = $this->crearUsuario($persona, $form["email"]->getData(), $password);
-                //Envía un email    
-                $url = $this->getParameter('extranet_app_url');
-                $email = (new TemplatedEmail())
-                    ->from($this->getParameter('direccion_email_salida'))
-                    ->to($form["email"]->getData())
-                    ->subject('Invitación a Dispositivo: Datos de acceso')
-                    ->htmlTemplate('emails/invitacionDatosAcceso.html.twig')
-                    ->context([
-                        'nicname' => $persona->__toString(),
-                        'user' => $persona->getCuitCuil(),
-                        'password' => $password,
-                        'url' => $url
-                    ]);
-                $mailer->send($email);
-            } else {
-                if ($persona->getUser()->getEmail() != $form['email']->getData()) {
-                    $this->addFlash('danger', "El correo ingresado es diferente al que posee el usuario. Se envió el correo a: {$persona->getUser()->getEmail()}");
-                }
-            }
-
+            $invitacion->setPersonaFisica($persona);
             $origen = $this->getUser()->getPersonaFisica();
 
             if ($invitacion->getPersonaFisica()->getId() == $origen->getId()) {
@@ -103,11 +96,15 @@ class InvitacionesController extends AbstractController
                 $this->addFlash('error', 'Ya has enviado una invitación a esta persona.');
                 return $this->redirectToRoute('nueva_invitacion');
             }
-
+            //  dd($invitacion);
+            $invitacion->setOrigen($origen);
+            $invitacion->prePersist();
+            $entityManager->persist($invitacion);
+            $entityManager->flush();
 
             $email = (new TemplatedEmail())
                 ->from($this->getParameter('direccion_email_salida'))
-                ->to('target@correo.com')
+                ->to($form['email']->getData())
                 ->subject('Invitación a Dispositivo')
                 ->htmlTemplate('emails/invitacionDispositivo.html.twig')
                 ->context([
@@ -118,12 +115,6 @@ class InvitacionesController extends AbstractController
 
             $mailer->send($email);
 
-            //  dd($invitacion);
-            $invitacion->setOrigen($origen);
-            $invitacion->prePersist();
-            $entityManager->persist($invitacion);
-            $entityManager->flush();
-
             return $this->redirectToRoute('mis_invitaciones');
         }
         $response = $this->renderView('invitaciones/invitacion.html.twig', [
@@ -133,6 +124,123 @@ class InvitacionesController extends AbstractController
         return new Response($response);
     }
 
+    #[Route('aceptar-invitacion/{hash}', name: 'aceptar_invitacion')]
+    public function AceptarInvitacion($hash, MailerInterface $mailer)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $invitacion = $em->getRepository(Invitacion::class)->findOneBy([
+            "hash" => $hash,
+            "fechaEliminacion" => null
+        ]);
+
+        //TODO: Definir la ruta de redirección. Para probar uso dashboard
+
+        if (!$invitacion) {
+            $this->addFlash('danger', 'La invitación no se encuentra o no existe.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ($invitacion->getFechaUso() && $invitacion->getAceptada()) {
+            $this->addFlash('danger', 'La invitación se encuentra aceptada.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ($invitacion->getFechaUso() && $invitacion->getAceptada() == false) {
+            $this->addFlash('danger', 'La invitación se encuentra rechazada.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ($invitacion->getFechaEliminacion()) {
+            $this->addFlash('danger', 'La invitación fue eliminada.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        $invitacion->setFechaUso(new DateTime());
+        $invitacion->setAceptada(true);
+        $persona = $invitacion->getPersonaFisica();
+
+        if (!$invitacion->getPersonaFisica()->getUser()) {
+            $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
+            //Crea usuario en keycloak y en la tabla usuarios
+            $this->crearUsuario($persona, $invitacion->getEmail(), $password);
+            //Envía un email    
+            $url = $this->getParameter('extranet_app_url');
+            $email = (new TemplatedEmail())
+                ->from($this->getParameter('direccion_email_salida'))
+                ->to($invitacion->getEmail())
+                ->subject('Invitación a Dispositivo: Datos de acceso')
+                ->htmlTemplate('emails/invitacionDatosAcceso.html.twig')
+                ->context([
+                    'nicname' => $persona->__toString(),
+                    'user' => $persona->getCuitCuil(),
+                    'password' => $password,
+                    'url' => $url
+                ]);
+            $mailer->send($email);
+        } else {
+            if ($persona->getUser()->getEmail() != $invitacion->getEmail()) {
+                $this->addFlash('danger', "El correo ingresado es diferente al que posee el usuario. Se envió el correo a: {$persona->getUser()->getEmail()}");
+            }
+        }
+
+        //Asignamos el usuario al dispositivo
+        $dispositivo = $invitacion->getDispositivo();
+        $usuarioDispositivo = new UsuarioDispositivo();
+        $usuarioDispositivo->setDispositivo($dispositivo);
+        $usuarioDispositivo->setUsuario($persona->getUser());
+        //TODO:Inyectar este seteo mediante un servicio o función
+        $usuarioDispositivo->setFechaAlta(new DateTime());
+        $dispositivo->addUsuarioDispositivo($usuarioDispositivo);
+
+        //TODO: No hardcodear, traer desde dispositivo->tipoDispositivo->grupos
+        //Hardcodeado para testear
+        $groups = ["Administradores"];
+        $this->asignarGrupos($persona->getUser(), $groups);
+
+        $em->persist($invitacion);
+        $em->flush();
+
+        $this->addFlash('success', 'Invitación confirmada correctamente.');
+        return $this->redirectToRoute('dashboard');
+    }
+
+    #[Route('rechazar-invitacion/{hash}', name: 'rechazar_invitacion')]
+    public function RechazarInvitacion($hash)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $invitacion = $em->getRepository(Invitacion::class)->findOneBy([
+            "hash" => $hash,
+            "fechaEliminacion" => null
+        ]);
+
+        //TODO: Definir la ruta de redirección. Para probar uso dashboard
+
+        if (!$invitacion) {
+            $this->addFlash('danger', 'La invitación no se encuentra o no existe.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ($invitacion->getFechaUso() && $invitacion->getAceptada() == false) {
+            $this->addFlash('danger', 'La invitación se encuentra rechazada.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ($invitacion->getFechaEliminacion()) {
+            $this->addFlash('danger', 'La invitación fue eliminada.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        $invitacion->setFechaUso(new DateTime());
+        $invitacion->setAceptada(false);
+
+        $em->persist($invitacion);
+        $em->flush();
+
+        $this->addFlash('success', 'Invitación rechazada correctamente.');
+        return $this->redirectToRoute('dashboard');
+    }
+
+
     public function crearUsuario($persona, $email, $password)
     {
         $data = $this->intranetService->postUser(
@@ -140,7 +248,7 @@ class InvitacionesController extends AbstractController
             $password,
             $email,
             $persona->getNombres(),
-            $persona->getApellido()          
+            $persona->getApellido()
         );
 
         if ($data->getStatusCode() == 500) {
@@ -155,5 +263,20 @@ class InvitacionesController extends AbstractController
         $persona->setUser($user);
         $user->setPersonaFisica($persona);
         return $user;
+    }
+
+    public function asignarGrupos($user, $groups)
+    {
+        $data = $this->intranetService->postUserGroup(
+            $user,
+            $groups
+        );
+
+        if ($data->getStatusCode() == 500) {
+            $this->addFlash('danger', 'Hubo un error, la operación no pudo completarse');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        return;
     }
 }

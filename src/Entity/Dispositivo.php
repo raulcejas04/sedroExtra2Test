@@ -45,7 +45,7 @@ class Dispositivo
     private $personaJuridica;
 
     /**
-     * @ORM\OneToMany(targetEntity=UsuarioDispositivo::class, mappedBy="dispositivo")
+     * @ORM\OneToMany(targetEntity=UsuarioDispositivo::class, mappedBy="dispositivo",cascade={"persist"})
      */
     private $usuarioDispositivos;
 

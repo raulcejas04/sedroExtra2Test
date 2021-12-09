@@ -3,6 +3,8 @@
 namespace App\Security;
 
 use App\Entity\User;
+use App\Entity\UserGrupo;
+use App\Service\IntranetService;
 use KnpU\OAuth2ClientBundle\Security\Authenticator\SocialAuthenticator;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
  * Class KeycloakAuthenticator
@@ -21,12 +24,16 @@ class KeycloakAuthenticator extends SocialAuthenticator
     private $clientRegistry;
     private $em;
     private $router;
+    private $intranetService;
+    private $parameterBag;
 
-    public function __construct(ClientRegistry $clientRegistry, EntityManagerInterface $em, RouterInterface $router)
+    public function __construct(ClientRegistry $clientRegistry, EntityManagerInterface $em, RouterInterface $router, IntranetService $service, ParameterBagInterface $pb)
     {
         $this->clientRegistry = $clientRegistry;
         $this->em = $em;
         $this->router = $router;
+        $this->intranetService = $service;
+        $this->parameterBag = $pb;
     }
 
     public function start(Request $request, \Symfony\Component\Security\Core\Exception\AuthenticationException $authException = null)
@@ -44,57 +51,125 @@ class KeycloakAuthenticator extends SocialAuthenticator
 
     public function getCredentials(Request $request)
     {
-    	$credentials=$this->fetchAccessToken($this->getKeycloakClient());
-    	$refreshToken=$credentials->getRefreshToken();
-    	$token= $credentials->getToken();
-	$session = new Session();
-        $session->set('refreshToken', $refreshToken );
-        $session->set('token', $token );
-        
+        $credentials = $this->fetchAccessToken($this->getKeycloakClient());
+        $refreshToken = $credentials->getRefreshToken();
+        $token = $credentials->getToken();
+        $session = new Session();
+        $session->set('refreshToken', $refreshToken);
+        $session->set('token', $token);
+
         return $credentials;
     }
 
-    public function getUser($credentials, \Symfony\Component\Security\Core\User\UserProviderInterface $userProvider )
+    public function getUser($credentials, \Symfony\Component\Security\Core\User\UserProviderInterface $userProvider)
     {
-    	//$client = $this->clientRegistry->getClient('keycloak');
-    	//$client = $this->getKeycloakClient();
+              //$client = $this->clientRegistry->getClient('keycloak');
+        //$client = $this->getKeycloakClient();
 
-    	$token=$credentials->getToken(); //esto anda, pero no me deja sacar el refreshtoken
-    	$expires=$credentials->getExpires();
-    	//dd(date('Y-m-d H:i:s',$expires));
+        $token = $credentials->getToken(); //esto anda, pero no me deja sacar el refreshtoken
+        $expires = $credentials->getExpires();
+        //dd(date('Y-m-d H:i:s',$expires));
 
         $keycloakUser = $this->getKeycloakClient()->fetchUserFromToken($credentials);
+        $data = $keycloakUser->toArray();
         //dd($keycloakUser);
         //dd($keycloakUser->toArray()['preferred_username']);
         //existing user ?
         $existingUser = $this
-                            ->em
-                            ->getRepository(User::class)
-                            ->findOneBy(['KeycloakId' => $keycloakUser->getId()]);
+            ->em
+            ->getRepository(User::class)
+            ->findOneBy(['KeycloakId' => $keycloakUser->getId()]);
 
         if ($existingUser) {
-            return $existingUser;
-        }
-        // if user exist but never connected with keycloak
-        $email = $keycloakUser->getEmail();
-        /** @var User $userInDatabase */
-        $userInDatabase = $this->em->getRepository(User::class)
-            ->findOneBy(['email' => $email]);
-        if($userInDatabase) {
-            $userInDatabase->setKeycloakId($keycloakUser->getId());
-            $this->em->persist($userInDatabase);
+            if (array_key_exists("roles", $data)) {
+                $existingUser->setRoles($data["roles"]);
+            }
+        } else {
+            // if user exist but never connected with keycloak
+            $email = $keycloakUser->getEmail();
+            /** @var User $userInDatabase */
+            $userInDatabase = $this->em->getRepository(User::class)
+                ->findOneBy(['email' => $email]);
+            if ($userInDatabase) {
+                $userInDatabase->setKeycloakId($keycloakUser->getId());
+                $this->em->persist($userInDatabase);
+                $this->em->flush();
+                return $userInDatabase;
+            }
+            //user not exist in database
+            $newUser = new User();
+            $newUser->setKeycloakId($keycloakUser->getId());
+            $newUser->setEmail($keycloakUser->getEmail());
+            //$user->setUsername($keycloakUser->getPreferredUsername());
+            //TODO: Ver esto! ROLE_ADMIN--- Podría ser preguntando de cual Realm proviene el usuario que nos de el ROLE_*??
+            if (array_key_exists("roles", $data)) {
+                $newUser->setRoles($data["roles"]);
+            }
+            $newUser->setPassword('');
+            $this->em->persist($newUser);
             $this->em->flush();
-            return $userInDatabase;
         }
-        //user not exist in database
-        $user = new User();
-        $user->setKeycloakId($keycloakUser->getId());
-        $user->setEmail($keycloakUser->getEmail());
-        //TODO: Ver esto! ROLE_ADMIN
-        $user->setRoles(['ROLE_USER']);
-        $user->setPassword('');
-        $this->em->persist($user);
-        $this->em->flush();
+
+        $user = $existingUser ? $existingUser : $newUser;
+
+        /** GRUPO Y ROLES * */
+        if (array_key_exists("groups", $data)) {
+            $userGroups = $this->em->getRepository(\App\Entity\UserGrupo::class)->findBy([
+                "usuario" => $user
+            ]);
+
+            foreach ($userGroups as $grupoUsuario) {
+                $this->em->remove($grupoUsuario);
+                $this->em->flush();
+            }
+            foreach ($data["groups"] as $group) {
+                $res = $this->intranetService->getGroup($group, $this->parameterBag->get('keycloak_realm'));
+                $existingGroup = $this->em->getRepository(\App\Entity\Grupo::class)->findOneBy(["KeycloakGroupId" => $res->id]);
+                $g = $existingGroup ? $existingGroup : new \App\Entity\Grupo();
+                $g->setKeycloakGroupId($res->id);
+                $g->setNombre($res->name);  
+                
+                $userGroup = new UserGrupo();
+                $userGroup->setUsuario($user); 
+                $userGroup->setGrupo($g);
+                $g->addGroupUser($userGroup);
+
+                $this->em->persist($g);
+                $this->em->flush();
+
+                //TODO: Setear tipo de dispositivos, podríamos hacerlo con los atributos del grupo
+            }
+        }
+
+        if (array_key_exists("roles", $data)) {
+            $userRoles = $this->em->getRepository(\App\Entity\UserRole::class)->findBy([
+                "Usuario" => $user
+            ]);
+            foreach ($userRoles as $userRole) {
+                $this->em->remove($userRole);
+                $this->em->flush();
+            }
+
+            foreach ($data["roles"] as $role) {
+                //Se remueve el prefijo para acertar la búsqueda, debe ser igual al que está en el mapper del cliente en keycloak
+                $res = $this->intranetService->getRole(str_replace("ROLE_", "", $role));
+                $existingRole = $this->em->getRepository(\App\Entity\Role::class)->findOneBy(["keycloakRoleId" => $res->id]);
+                $r = $existingRole ? $existingRole : new \App\Entity\Role();
+                $r->setKeycloakRoleId($res->id);
+                $r->setCode("ROLE_" . $res->name);
+                //TODO: Traer la descripción del role (puede sacarse de atributos, pero quiero ver si hay una forma directa)
+                $r->setName($res->name);
+
+                $userRole = new \App\Entity\UserRole();
+                $userRole->setRole($r);
+                $userRole->setUsuario($user);
+                $r->addUserRole($userRole);
+
+                $this->em->persist($r);
+                $this->em->flush();
+            }
+        }
+        /** FIN GRUPO Y ROLES * */
         return $user;
     }
 
@@ -107,7 +182,7 @@ class KeycloakAuthenticator extends SocialAuthenticator
 
     public function onAuthenticationSuccess(Request $request, \Symfony\Component\Security\Core\Authentication\Token\TokenInterface $token, string $providerKey)
     {
-    	//dd($token);
+        //dd($token);
         // change "app_homepage" to some route in your app
         $targetUrl = $this->router->generate('dashboard');
 
@@ -121,6 +196,4 @@ class KeycloakAuthenticator extends SocialAuthenticator
     {
         return $this->clientRegistry->getClient('keycloak');
     }
-
 }
-

@@ -23,8 +23,6 @@ class IntranetService
 
     public function postUser($username, $password, $email, $firstname, $lastname)
     {
-        $client = new GuzzleHttp\Client();
-
         $base_uri = $this->parameterBag->get('intranet_app_url');
         $uri = $base_uri . '/api/add/user';
         $params = [
@@ -37,8 +35,55 @@ class IntranetService
             ]
         ];
 
-        $res =$client->post($uri, $params);
+        $res = $this->client->post($uri, $params);
 
         return $res;
     }
+
+    public function postUserGroup($user, $groups)
+    {
+        $base_uri = $this->parameterBag->get('intranet_app_url');
+        $uri = $base_uri . '/api/add/group/user';
+        $params = [
+            'json' => [
+                'username' => $user->getUsername(),
+                'groups' => $groups
+            ]
+        ];
+
+        $res = $this->client->post($uri, $params);
+
+        return $res;
+    }
+
+    public function getGroup($groupName)
+    {
+        $base_uri = $this->parameterBag->get('intranet_app_url');
+        $uri = $base_uri . '/api/get/group';
+        $params = [
+            'json' => [
+                'group' => $groupName,
+                'realm' => $this->parameterBag->get('keycloak_realm')
+            ]
+        ];
+
+        $res = $this->client->get($uri, $params);
+        return json_decode($res->getBody());
+    }
+
+    public function getRole($roleName)
+    {
+        $base_uri = $this->parameterBag->get('intranet_app_url');
+        $uri = $base_uri . '/api/get/role';
+        $params = [
+            'json' => [
+                'role' => $roleName,
+                'realm' => $this->parameterBag->get('keycloak_realm')
+            ]
+        ];
+
+        $res = $this->client->get($uri, $params);
+        return json_decode($res->getBody());
+    }
+
 }
