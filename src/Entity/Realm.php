@@ -35,7 +35,7 @@ class Realm
     private $solicitudes;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $keycloakRealmId;
 
@@ -49,6 +49,11 @@ class Realm
      */
     private $fechaEliminacion;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Grupo::class, mappedBy="realm")
+     */
+    private $grupos;
+
     public function __toString()
     {
         return $this->getRealm();
@@ -58,6 +63,7 @@ class Realm
     {
         $this->solicitudes = new ArrayCollection();
         $this->userRealms = new ArrayCollection();
+        $this->grupos = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -73,18 +79,6 @@ class Realm
     public function setRealm(string $realm): self
     {
         $this->realm = $realm;
-
-        return $this;
-    }
-
-    public function getIdRealmKeycloak(): ?string
-    {
-        return $this->idRealmKeycloak;
-    }
-
-    public function setIdRealmKeycloak(?string $idRealmKeycloak): self
-    {
-        $this->idRealmKeycloak = $idRealmKeycloak;
 
         return $this;
     }
@@ -172,4 +166,35 @@ class Realm
 
         return $this;
     }
+
+    /**
+     * @return Collection|Grupo[]
+     */
+    public function getGrupos(): Collection
+    {
+        return $this->grupos;
+    }
+
+    public function addGrupo(Grupo $grupo): self
+    {
+        if (!$this->grupos->contains($grupo)) {
+            $this->grupos[] = $grupo;
+            $grupo->setRealm($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGrupo(Grupo $grupo): self
+    {
+        if ($this->grupos->removeElement($grupo)) {
+            // set the owning side to null (unless already changed)
+            if ($grupo->getRealm() === $this) {
+                $grupo->setRealm(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

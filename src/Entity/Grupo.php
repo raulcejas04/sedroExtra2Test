@@ -44,6 +44,11 @@ class Grupo {
      */
     private $fechaEliminacion;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Realm::class, inversedBy="grupos")
+     */
+    private $realm;
+
     public function __toString() {
         return $this->getNombre();
     }
@@ -132,6 +137,18 @@ class Grupo {
                 $groupUser->setGrupo(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRealm(): ?Realm
+    {
+        return $this->realm;
+    }
+
+    public function setRealm(?Realm $realm): self
+    {
+        $this->realm = $realm;
 
         return $this;
     }

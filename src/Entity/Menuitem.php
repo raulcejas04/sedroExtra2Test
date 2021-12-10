@@ -147,6 +147,11 @@ class Menuitem {
         $this->menuitems = new ArrayCollection();
     }
 
+    public function __toString()
+    {
+        return $this->name;
+    }
+
     public function setId($id) {
         $this->id = $id;
     }

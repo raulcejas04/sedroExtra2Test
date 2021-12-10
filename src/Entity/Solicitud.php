@@ -106,9 +106,10 @@ class Solicitud
     /**
      * @ORM\PrePersist
      */
-    public function setCreatedAtValue(): void
+    public function setPrePersistValues(): void
     {
         $this->creacion = new \DateTimeImmutable();
+        $this->usada = false;
     }
 
     public function getId(): ?int
