@@ -52,8 +52,38 @@ class IntranetService
         ];
 
         $res = $this->client->post($uri, $params);
-
+        
         return $res;
+    }
+
+    public function getUserByUsername($username)
+    {
+        $base_uri = $this->parameterBag->get('intranet_app_url');
+        $uri = $base_uri . '/api/get/user/username';
+        $params = [
+            'json' => [
+                'username' => $username,
+                'realm' => $this->parameterBag->get('keycloak_realm')
+            ]
+        ];
+
+        $res = $this->client->get($uri, $params);
+        return json_decode($res->getBody());
+    }
+
+    public function getUserByEmail($email)
+    {
+        $base_uri = $this->parameterBag->get('intranet_app_url');
+        $uri = $base_uri . '/api/get/user/email';
+        $params = [
+            'json' => [
+                'email' => $email,
+                'realm' => $this->parameterBag->get('keycloak_realm')
+            ]
+        ];
+
+        $res = $this->client->get($uri, $params);
+        return json_decode($res->getBody());
     }
 
     public function getGroup($groupName)

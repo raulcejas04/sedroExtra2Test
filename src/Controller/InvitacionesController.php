@@ -133,8 +133,6 @@ class InvitacionesController extends AbstractController
             "fechaEliminacion" => null
         ]);
 
-        //TODO: Definir la ruta de redirección. Para probar uso dashboard
-
         if (!$invitacion) {
             $this->addFlash('danger', 'La invitación no se encuentra o no existe.');
             return $this->redirectToRoute('dashboard');
@@ -159,24 +157,10 @@ class InvitacionesController extends AbstractController
         $invitacion->setAceptada(true);
         $persona = $invitacion->getPersonaFisica();
 
-        if (!$invitacion->getPersonaFisica()->getUser()) {
-            $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
+        if (!$persona->getUser()) {
+            // $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
             //Crea usuario en keycloak y en la tabla usuarios
-            $this->crearUsuario($persona, $invitacion->getEmail(), $password);
-            //Envía un email    
-            $url = $this->getParameter('extranet_app_url');
-            $email = (new TemplatedEmail())
-                ->from($this->getParameter('direccion_email_salida'))
-                ->to($invitacion->getEmail())
-                ->subject('Invitación a Dispositivo: Datos de acceso')
-                ->htmlTemplate('emails/invitacionDatosAcceso.html.twig')
-                ->context([
-                    'nicname' => $persona->__toString(),
-                    'user' => $persona->getCuitCuil(),
-                    'password' => $password,
-                    'url' => $url
-                ]);
-            $mailer->send($email);
+            $this->crearUsuario($persona, $invitacion->getEmail(), $mailer);
         } else {
             if ($persona->getUser()->getEmail() != $invitacion->getEmail()) {
                 $this->addFlash('danger', "El correo ingresado es diferente al que posee el usuario. Se envió el correo a: {$persona->getUser()->getEmail()}");
@@ -213,8 +197,6 @@ class InvitacionesController extends AbstractController
             "fechaEliminacion" => null
         ]);
 
-        //TODO: Definir la ruta de redirección. Para probar uso dashboard
-
         if (!$invitacion) {
             $this->addFlash('danger', 'La invitación no se encuentra o no existe.');
             return $this->redirectToRoute('dashboard');
@@ -241,28 +223,61 @@ class InvitacionesController extends AbstractController
     }
 
 
-    public function crearUsuario($persona, $email, $password)
+    public function crearUsuario($persona, $email, MailerInterface $mailer)
     {
-        $data = $this->intranetService->postUser(
-            $persona->getCuitCuil(),
-            $password,
-            $email,
-            $persona->getNombres(),
-            $persona->getApellido()
-        );
+        $em = $this->getDoctrine()->getManager();
+        $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
+        $userByUsernameResponse = $this->intranetService->getUserByUsername($persona->getCuitCuil());
+        $userByEmailResponse = $this->intranetService->getUserByEmail($email);
 
-        if ($data->getStatusCode() == 500) {
-            $this->addFlash('danger', 'Hubo un error, la operación no pudo completarse');
-            return $this->redirectToRoute('dashboard');
+        if (empty($userByUsernameResponse) && empty($userByEmailResponse)) {
+            $data = $this->intranetService->postUser(
+                $persona->getCuitCuil(),
+                $password,
+                $email,
+                $persona->getNombres(),
+                $persona->getApellido()
+            );
+
+            if ($data->getStatusCode() == 500) {
+                $this->addFlash('danger', 'Hubo un error, la operación no pudo completarse');
+                return $this->redirectToRoute('dashboard');
+            }
+
+            //Envía un email    
+            $url = $this->getParameter('extranet_app_url');
+            $templatedEmail = (new TemplatedEmail())
+                ->from($this->getParameter('direccion_email_salida'))
+                ->to($email)
+                ->subject('Invitación a Dispositivo: Datos de acceso')
+                ->htmlTemplate('emails/invitacionDatosAcceso.html.twig')
+                ->context([
+                    'nicname' => $persona->__toString(),
+                    'user' => $persona->getCuitCuil(),
+                    'password' => $password,
+                    'url' => $url
+                ]);
+            $mailer->send($templatedEmail);
         }
 
-        $user = new User;
-        $user->setUsername($persona->getCuitCuil());
-        $user->setEmail($email);
-        $user->setPassword('');
-        $persona->setUser($user);
-        $user->setPersonaFisica($persona);
-        return $user;
+        $existingUser = $em->getRepository(User::class)->findByUsernameOrEmail($persona->getCuitCuil(), $email);
+        $keycloakUser = $this->intranetService->getUserByUsername($persona->getCuitCuil());
+
+        if (!$existingUser) {
+            $user = new User;
+            $user->setUsername($persona->getCuitCuil());
+            $user->setEmail($email);
+            $user->setKeycloakId($keycloakUser[0]->id);
+            $user->setPassword('');
+            $persona->setUser($user);
+            $user->setPersonaFisica($persona);
+            return $user;
+        } else {
+            $existingUser->setKeycloakId($keycloakUser[0]->id);
+            $persona->setUser($existingUser);
+            $existingUser->setPersonaFisica($persona);
+            return $existingUser;
+        }
     }
 
     public function asignarGrupos($user, $groups)
