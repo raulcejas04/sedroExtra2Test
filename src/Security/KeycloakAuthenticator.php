@@ -63,7 +63,7 @@ class KeycloakAuthenticator extends SocialAuthenticator
 
     public function getUser($credentials, \Symfony\Component\Security\Core\User\UserProviderInterface $userProvider)
     {
-              //$client = $this->clientRegistry->getClient('keycloak');
+        //$client = $this->clientRegistry->getClient('keycloak');
         //$client = $this->getKeycloakClient();
 
         $token = $credentials->getToken(); //esto anda, pero no me deja sacar el refreshtoken
@@ -75,42 +75,18 @@ class KeycloakAuthenticator extends SocialAuthenticator
         //dd($keycloakUser);
         //dd($keycloakUser->toArray()['preferred_username']);
         //existing user ?
-        $existingUser = $this
+        $user = $this
             ->em
             ->getRepository(User::class)
             ->findOneBy(['KeycloakId' => $keycloakUser->getId()]);
 
-        if ($existingUser) {
+        if ($user) {
             if (array_key_exists("roles", $data)) {
-                $existingUser->setRoles($data["roles"]);
+                $user->setRoles($data["roles"]);
             }
         } else {
-            // if user exist but never connected with keycloak
-            $email = $keycloakUser->getEmail();
-            /** @var User $userInDatabase */
-            $userInDatabase = $this->em->getRepository(User::class)
-                ->findOneBy(['email' => $email]);
-            if ($userInDatabase) {
-                $userInDatabase->setKeycloakId($keycloakUser->getId());
-                $this->em->persist($userInDatabase);
-                $this->em->flush();
-                return $userInDatabase;
-            }
-            //user not exist in database
-            $newUser = new User();
-            $newUser->setKeycloakId($keycloakUser->getId());
-            $newUser->setEmail($keycloakUser->getEmail());
-            //$user->setUsername($keycloakUser->getPreferredUsername());
-            //TODO: Ver esto! ROLE_ADMIN--- Podría ser preguntando de cual Realm proviene el usuario que nos de el ROLE_*??
-            if (array_key_exists("roles", $data)) {
-                $newUser->setRoles($data["roles"]);
-            }
-            $newUser->setPassword('');
-            $this->em->persist($newUser);
-            $this->em->flush();
+            return null;
         }
-
-        $user = $existingUser ? $existingUser : $newUser;
 
         /** GRUPO Y ROLES * */
         if (array_key_exists("groups", $data)) {
@@ -127,10 +103,10 @@ class KeycloakAuthenticator extends SocialAuthenticator
                 $existingGroup = $this->em->getRepository(\App\Entity\Grupo::class)->findOneBy(["KeycloakGroupId" => $res->id]);
                 $g = $existingGroup ? $existingGroup : new \App\Entity\Grupo();
                 $g->setKeycloakGroupId($res->id);
-                $g->setNombre($res->name);  
-                
+                $g->setNombre($res->name);
+
                 $userGroup = new UserGrupo();
-                $userGroup->setUsuario($user); 
+                $userGroup->setUsuario($user);
                 $userGroup->setGrupo($g);
                 $g->addGroupUser($userGroup);
 
@@ -175,9 +151,9 @@ class KeycloakAuthenticator extends SocialAuthenticator
 
     public function onAuthenticationFailure(Request $request, \Symfony\Component\Security\Core\Exception\AuthenticationException $exception)
     {
-        $message = strtr($exception->getMessageKey(), $exception->getMessageData());
-
-        return new Response($message, Response::HTTP_FORBIDDEN);
+        return new RedirectResponse(
+            $this->router->generate('account_failure')
+        );
     }
 
     public function onAuthenticationSuccess(Request $request, \Symfony\Component\Security\Core\Authentication\Token\TokenInterface $token, string $providerKey)

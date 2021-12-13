@@ -230,7 +230,7 @@ class InvitacionesController extends AbstractController
         $userByUsernameResponse = $this->intranetService->getUserByUsername($persona->getCuitCuil());
         $userByEmailResponse = $this->intranetService->getUserByEmail($email);
 
-        if (empty($userByUsernameResponse) && empty($userByEmailResponse)) {
+        if (empty($userByUsernameResponse) || empty($userByEmailResponse)) {
             $data = $this->intranetService->postUser(
                 $persona->getCuitCuil(),
                 $password,

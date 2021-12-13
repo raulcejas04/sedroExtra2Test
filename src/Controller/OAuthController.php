@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 
 use GuzzleHttp;
+use Symfony\Component\HttpFoundation\Response;
 
 class OAuthController extends AbstractController
 {
@@ -80,4 +81,49 @@ class OAuthController extends AbstractController
     public function check()
     {
     }
+
+  /**
+     * @Route("/account/error", name="account_failure")
+     */
+    public function accountFailure()
+    {
+        $session = new Session();
+        $refreshToken = $session->get('refreshToken');
+        $token = $session->get('token');
+
+        $keycloak_url = $this->getParameter('keycloak_url');
+        $keycloak_clientid = $this->getParameter('keycloak_clientid');
+        $keycloak_secret = $this->getParameter('keycloak_secret');
+        $keycloak_realm = $this->getParameter('keycloak_realm');
+
+        if (isset($token) and isset($refreshToken)) {
+            $uri = $keycloak_url . "/realms/" . $keycloak_realm . "/protocol/openid-connect/logout";
+            $params = [
+                'headers' => ['Authorization' => "Bearer " . $token],
+                'form_params' => [
+                    'client_id' => $keycloak_clientid,
+                    'client_secret' => $keycloak_secret,
+                    'refresh_token' => $refreshToken
+                ]
+            ];
+
+            $client = new GuzzleHttp\Client();
+            $res = $client->post($uri, $params);
+            $data = json_decode($res->getBody());
+        }
+
+        //$user = $security->getUser();
+        //dd($user);
+
+        //https://stackoverflow.com/questions/61087025/symfony-5-0-5-custom-logout-multiple-logout-manually
+        $this->get('security.token_storage')->setToken(null);
+        $this->get('session')->invalidate();
+
+        $this->addFlash('danger', 'Ha ocurrido un error!');
+
+        $response = $this->renderView('errors/accountError.html.twig');
+
+        return new Response($response);
+    }
+
 }
