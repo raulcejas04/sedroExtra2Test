@@ -1,37 +1,95 @@
-//import validator from 'validator';
-console.log(validator.isEmail('dddd'));
+$(document).ready(function() {
+$('input[type=text]').each( 
+    function(index){  
+        var input = $(this);
+        console.log('Type: ' + input.attr('type') + ' | Name: ' + input.attr('name') + ' | Value: ' + input.val());
+	        var myClass = $(this).attr("class");
+        
+	        //es del tipo CUIT
+	        if( myClass.indexOf("val-cuit") >= 0 )
+	        {
+
+	               input.bind("change blur",(event)=>{  
+
+			    input[0].setCustomValidity("");
+			    if (!isValidCUITCUIL(input.val()))
+			    {
+		                    input[0].setCustomValidity("Cuit/Cuil inválido");
+		                    //console.log( input.attr('id'));
+		                    console.log($("#err_nueva_solicitud_cuit").html());
+                                   $("#err_"+input.attr('id')).html("Cuit/Cuil inválido");
+                                   //$("#err_nueva_solicitud_cuit").html("Cuit/Cuil inválido");
+                                   $("#err_"+input.attr('id')).css('color','red'); // TODO es provisorio, habría que sacarlo y hacerlo desde CSS
+                           } else {
+                                   $("#err_"+input.attr('id')).html('');
+			    }
+		      });
+	        
+
+		      input.bind('keydown', ( event ) => {
+		            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') return
+		            input.selectionStart = input.textLength;
+		            input.selectionEnd = input.textLength;
+		            input.val( input.val()[1] && input.val()[2]!=='-' ? input.val().slice(0,2) + '-' + input.val().slice(2) : input.val() );
+	                    input.val( input.val()[10] && input.val()[11]!=='-' ? input.val().slice(0,11) + '-' + input.val().slice(11) : input.val() );
+        	            if (event.key === 'Backspace' && input.selectionStart === 3 && input.selectionEnd === 3 && input.textLength === 3) {
+        	                event.preventDefault();
+        	                input.val( input.val().slice(0, -2) );
+        	                return;
+        	            }
+        	            if (event.key === 'Backspace' && input.selectionStart === 12 && input.selectionEnd === 12 && input.textLength === 12) {
+           	                event.preventDefault();
+        	                input.val( input.val().slice(0, -2) );
+        	            }
+        	     });
+        	     
+      	             input.bind('keypress', ( event ) => {
+		            if (!validator.isNumeric(event.key) || input.textLength >= 13) event.preventDefault()
+        		});
+        		
+        		
+	        
+	        }
+	        
+    }
+);
 
 
-const input_CUIT = document.getElementById('nueva_solicitud_cuit');
-const input_CUIL = document.getElementById('nueva_solicitud_cuil');
-const input_email = document.getElementById('nueva_solicitud_mail_first');
-const input_email_repeat = document.getElementById('nueva_solicitud_mail_second');
+$('input[type=email]').each( 
+    function(index){  
+        var input = $(this);
+        console.log('Type: ' + input.attr('type') + ' | Name: ' + input.attr('name') + ' | Value: ' + input.val());
+	        var myClass = $(this).attr("class");
 
-input_CUIT.addEventListener('input', () => {
-    input_CUIT.setCustomValidity("");
-    if(!isValidCUITCUIL(input_CUIT.value))
-        input_CUIT.setCustomValidity("Invalid CUIT!")
-});
 
-input_CUIL.addEventListener('input', () => {
-    input_CUIL.setCustomValidity("");
-    if (!isValidCUITCUIL(input_CUIL.value))
-        input_CUIL.setCustomValidity("Invalid CUIL!")
-});
 
-input_email.addEventListener('input', () => {
-    input_email.setCustomValidity("");
-    if (!validator.isEmail(input_email.value))
-        input_email.setCustomValidity("Invalid E-MAIL!")
-});
+      	        if( myClass.indexOf("val-email") >= 0 )
+	        {
+			console.log("mail");
+	               input.bind("change blur",(event)=>{  
 
-input_email_repeat.addEventListener('input', () => {
-    input_email_repeat.setCustomValidity("");
-    if (input_email.value !== input_email_repeat.value)
-        input_email_repeat.setCustomValidity("E-MAIL doesn't match!")
-});
+			    input[0].setCustomValidity("");
+			    if ( !validator.isEmail(input.val()) )
+ 			    {
+			        input[0].setCustomValidity("Mail invalido");
+				console.log(input.attr('id'));
+      			        input.val('');
+      			        input.focus();
+      			        document.getElementById(input.attr('id')).focus();
+      			        event.preventDefault();
+      			        return false;
+			    }
+		      });
+	        
+     
+	        }
+	}
+);
+
+})
 
 function isValidCUITCUIL(cuit) {
+
     if (cuit.length !== 13)
         return false;
     let rv = false;

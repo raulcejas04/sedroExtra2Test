@@ -14,7 +14,7 @@ class DispositivoType extends AbstractType
     {
         $builder
             ->add('nicname', TextType::class, [                
-                'label' => "Nombre del dispositivo",                
+                'label' => "Nombre corto del dispositivo",                
                 'required' => true,
                 'attr' => [
                     'class' => 'form-control',

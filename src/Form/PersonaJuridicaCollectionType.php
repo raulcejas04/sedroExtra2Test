@@ -9,6 +9,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use App\Form\DispositivoType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 
 class PersonaJuridicaCollectionType extends AbstractType
 {
@@ -19,7 +21,7 @@ class PersonaJuridicaCollectionType extends AbstractType
                 'label' => "CUIT Persona Jurídica",
                 'required' => true,
                 'attr' => [
-                    'class' => 'form-control',
+                    'class' => 'form-control val-cuit',
                     'readonly' => true,
                 ]
             ])
@@ -34,6 +36,10 @@ class PersonaJuridicaCollectionType extends AbstractType
                 'entry_type' => DispositivoType::class,
                 'required' => true,                                
             ])
+            ->addEventListener(
+                FormEvents::POST_SUBMIT,
+                [$this, 'onPostSubmit']
+            );
             //->add('fechaAlta')
             //->add('fechaBaja')
         ;
@@ -45,4 +51,14 @@ class PersonaJuridicaCollectionType extends AbstractType
             'data_class' => PersonaJuridica::class,
         ]);
     }
+    
+    public function onPostSubmit(FormEvent $event): void
+    {
+        $per = $event->getData();
+        $form = $event->getForm();
+	$per->setCuit(str_replace('-','',$per->getCuit()));
+	
+	$event->setData($per);
+    }
+
 }
