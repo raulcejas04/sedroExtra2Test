@@ -24,10 +24,6 @@ class Realm
      */
     private $realm;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $idRealmKeycloak;
 
     /**
      * @ORM\OneToMany(targetEntity=Solicitud::class, mappedBy="realm")
@@ -40,7 +36,7 @@ class Realm
     private $keycloakRealmId;
 
     /**
-     * @ORM\OneToMany(targetEntity=UserRealm::class, mappedBy="realm")
+     * @ORM\OneToMany(targetEntity=UserRealm::class, mappedBy="realm",cascade={"persist"})
      */
     private $userRealms;
 
@@ -50,7 +46,7 @@ class Realm
     private $fechaEliminacion;
 
     /**
-     * @ORM\OneToMany(targetEntity=Grupo::class, mappedBy="realm")
+     * @ORM\OneToMany(targetEntity=Grupo::class, mappedBy="realm",cascade={"persist"})
      */
     private $grupos;
 
