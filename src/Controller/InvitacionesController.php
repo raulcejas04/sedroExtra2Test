@@ -14,6 +14,7 @@ use App\Entity\PersonaFisica;
 use App\Entity\User;
 use App\Entity\UsuarioDispositivo;
 use App\Form\InvitacionType;
+use App\Form\ReenviarEmailType;
 use App\Service\IntranetService;
 use App\Service\KeycloakApiSrv;
 use DateTime;
@@ -220,6 +221,87 @@ class InvitacionesController extends AbstractController
 
         $this->addFlash('success', 'Invitación rechazada correctamente.');
         return $this->redirectToRoute('dashboard');
+    }
+
+    #[Route('eliminar-invitacion/{hash}', name: 'eliminar_invitacion')]
+    public function EliminarInvitacion($hash)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $invitacion = $em->getRepository(Invitacion::class)->findOneBy([
+            "hash" => $hash,
+            "fechaEliminacion" => null
+        ]);
+
+        if (!$invitacion) {
+            $this->addFlash('danger', 'La invitación no se encuentra o no existe.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ($invitacion->getFechaUso() && $invitacion->getAceptada() == false) {
+            $this->addFlash('danger', 'La invitación se encuentra rechazada.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        $invitacion->setFechaEliminacion(new DateTime());
+        $em->persist($invitacion);
+        $em->flush();
+
+        $this->addFlash('success', 'Invitación eliminada correctamente.');
+        return $this->redirectToRoute('dashboard');
+    }
+
+    #[Route('reenviar-email/{hash}', name: 'invitacion_reenviarEmail')]
+    public function ReenviarEmail(Request $request, $hash, MailerInterface $mailer)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $invitacion = $em->getRepository(Invitacion::class)->findOneBy([
+            "hash" => $hash,
+            "fechaEliminacion" => null
+        ]);
+        if (!$invitacion) {
+            return new JsonResponse([
+                "status" => "error",
+                "message" => "La solicitud no se encuentra o no existe."
+            ]);
+        }
+
+        if ($invitacion->getFechaUso()) {
+            return new JsonResponse([
+                "status" => "error",
+                "message" => "Los datos de la solicitud ya han sido completados."
+            ]);
+        }
+
+        $form = $this->createForm(ReenviarEmailType::class, $invitacion);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $email = (new TemplatedEmail())
+                ->from($this->getParameter('direccion_email_salida'))
+                ->to($invitacion->getEmail())
+                ->subject('Invitación a Dispositivo')
+                ->htmlTemplate('emails/invitacionDispositivo.html.twig')
+                ->context([
+                    'nombre' => $invitacion->getPersonaFisica()->__toString(),
+                    'dispositivo' => $invitacion->getDispositivo()->getNicname(),
+                    'hash' => $invitacion->getHash()
+                ]);
+
+            $mailer->send($email);
+
+            return new JsonResponse([
+                "status" => "success",
+                "message" => "Email reenviado con éxito. Se ha enviado un email a " . $invitacion->getEmail() . " con la invitación al dispositivo."
+            ]);
+        }
+
+        return new JsonResponse([
+            "status" => "render",
+            "html" => $this->renderView('modales/reenviarEmailModal.html.twig', [
+                'invitacion' => $invitacion,
+                'formReenviarCorreo' => $form->createView()
+            ])
+        ]);
     }
 
 

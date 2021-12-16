@@ -40,13 +40,21 @@
                     
 
                     <br><br><br>.
-
+                        <div class="row">
+                        <div class="col-6">
+                                <div class="text-center">
+                                           <button data-url="{{path('invitacion_reenviarEmail',{'hash':invitacion.hash})}}" type="button" class="modal-form btn btn-lg btn-success">
+                                             Reenviar Email
+                                        </button>
+                                </div>
+                            </div>
+                        </div>
                       <div class="row">
                              {% if invitacion.fechaUso is null and invitacion.fechaEliminacion is null%}
                               <div class="col-6">
                                 <div class="text-center">
                                     <div class="center-block">
-                                        <a href="#" class="btn btn-lg btn-danger">Eliminar Invitación</a>
+                                        <a href="{{path('eliminar_invitacion',{'hash':invitacion.hash})}}" class="btn btn-lg btn-danger">Eliminar Invitación</a>                                      
                                     </div>
                                 </div>
                             </div>
@@ -58,12 +66,8 @@
                                     </div>
                                 </div>
                             </div>
-                           
                         </div>
-
-                   
                     <br><br><br>.
-
                 </div>
             </div>            
         </div>
@@ -72,5 +76,5 @@
     <br>
     <br>
     <br>
-
+    {{ encore_entry_script_tags('modales') }}
 {% endblock %}
