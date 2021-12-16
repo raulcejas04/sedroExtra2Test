@@ -76,7 +76,7 @@ class PersonaFisicaCollectionType extends AbstractType
                 'label' => "Número CUIT/CUIL",                
                 'required' => true,
                 'attr' => [
-                    'class' => 'form-control val-cuit',   'disabled' => true,                  
+                    'class' => 'form-control val-cuit',   'disabled' => false,                  
                 ]
             ])
             ->add('fechaNac', BirthdayType::class, [

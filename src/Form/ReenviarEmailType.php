@@ -14,7 +14,10 @@ class ReenviarEmailType extends AbstractType
     {
         $builder
             ->add('email',EmailType::class,[
-                'label'=>'Email Destino'
+                'label'=>'Email Destino',
+                'attr'=>[
+                    'class'=>'form-control'
+                ]
             ])
         ;
     }

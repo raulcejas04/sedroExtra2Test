@@ -25,6 +25,13 @@
         "/build/vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_is-array_js-n-373b19.js",
         "/build/modales.js"
       ]
+    },
+    "pasoDos": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_is-array_js-n-373b19.js",
+        "/build/pasoDos.js"
+      ]
     }
   }
 }

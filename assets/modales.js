@@ -6,7 +6,6 @@ $('.modal-form').on('click', function (e) {
         method: "POST",
         url: url,
         success: function (data) {
-            console.log($(data.html).find('.modal'));
             $('.modales').empty().append(data.html).find('.modal').modal('show');
         }
     });

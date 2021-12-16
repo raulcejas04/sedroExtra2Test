@@ -11,8 +11,6 @@ import './styles/style.scss';
 import './styles/poncho.css';
 import './styles/style.css';
 
-import Bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
-
 //import './styles/index.css';
 //import './styles/docs.min.css';
 
