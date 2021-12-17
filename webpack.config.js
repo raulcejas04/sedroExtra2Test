@@ -25,7 +25,8 @@ Encore
     )
     .addEntry('validarFormularios', './assets/validator.js')
     .addEntry('modales', './assets/modales.js')
-    .addEntry('pasoDos', './assets/modales.js')
+    .addEntry('invitacion', './assets/invitacionNueva.js')
+    .addEntry('pasoDos', './assets/solicitudPasoDos.js')
     // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
     .enableStimulusBridge('./assets/controllers.json')
 

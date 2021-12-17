@@ -36,8 +36,15 @@ class InvitacionesController extends AbstractController
     public function verInvitacion($hash): Response
     {
         $invitacion = $this->getDoctrine()->getManager()->getRepository(Invitacion::class)->findOneBy([
-            "hash" => $hash
+            "hash" => $hash,
+            "fechaEliminacion"=>null
         ]);
+
+        if(!$invitacion){
+            $this->addFlash('danger','La invitación no se encuentra o no existe.');
+            return $this->redirectToRoute('dashboard');
+        }
+
         $response = $this->renderView('invitaciones/verInvitacion.html.twig', [
             'invitacion' => $invitacion,
         ]);
@@ -48,7 +55,7 @@ class InvitacionesController extends AbstractController
     #[Route('mis-invitaciones', name: 'mis_invitaciones')]
     public function misInvitaciones(): Response
     {
-        $invitaciones = $this->getDoctrine()->getRepository(Invitacion::class)->findAll();
+        $invitaciones = $this->getDoctrine()->getRepository(Invitacion::class)->findBy(["fechaEliminacion"=>null]);
         $response = $this->renderView('invitaciones/misInvitaciones.html.twig', [
             'invitaciones' => $invitaciones,
         ]);
@@ -259,16 +266,18 @@ class InvitacionesController extends AbstractController
             "fechaEliminacion" => null
         ]);
         if (!$invitacion) {
+            $this->addFlash('danger','La invitación no se encuentra o no existe');           
             return new JsonResponse([
                 "status" => "error",
-                "message" => "La solicitud no se encuentra o no existe."
+                "html" => $this->renderView('modales/flashAlertsModal.html.twig')
             ]);
         }
 
         if ($invitacion->getFechaUso()) {
+            $this->addFlash('danger','Los datos de la invitación ya han sido completados');           
             return new JsonResponse([
                 "status" => "error",
-                "message" => "Los datos de la solicitud ya han sido completados."
+                "html" => $this->renderView('modales/flashAlertsModal.html.twig')
             ]);
         }
 
@@ -289,6 +298,9 @@ class InvitacionesController extends AbstractController
 
             $mailer->send($email);
 
+            $em->persist($invitacion);
+            $em->flush($invitacion);
+                
             return new JsonResponse([
                 "status" => "success",
                 "message" => "Email reenviado con éxito. Se ha enviado un email a " . $invitacion->getEmail() . " con la invitación al dispositivo."
@@ -296,7 +308,7 @@ class InvitacionesController extends AbstractController
         }
 
         return new JsonResponse([
-            "status" => "render",
+            "status" => "success",
             "html" => $this->renderView('modales/reenviarEmailModal.html.twig', [
                 'invitacion' => $invitacion,
                 'formReenviarCorreo' => $form->createView()

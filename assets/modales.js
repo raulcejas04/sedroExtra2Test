@@ -14,10 +14,11 @@ $('.modal-form').on('click', function (e) {
 $(document).on('click', '.modal-submit', function (e) {
     e.preventDefault();
     var form = $(this).closest('form');
-    var body = form.find('.modal-body');
+    var modal = form.find('.modal');
     var data = form.serialize();
     $(this).remove();
-    body.empty().append('<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>');
+    modal.find('.modal-body').empty().append('<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>');
+    modal.find('.modal-close').attr('disabled','disabled');
     $.ajax({
         method: "POST",
         url: form.attr('action'),
@@ -25,12 +26,13 @@ $(document).on('click', '.modal-submit', function (e) {
         success: function (data) {
             switch (data.status) {
                 case "success":
-                    body.empty().append('<div class="alert alert-success" role="alert">' + data.message + '</div>');
+                    modal.find('.modal-body').empty().append('<div class="alert alert-success" role="alert">' + data.message + '</div>');
                     break;
                 case "error":
-                    body.empty().append('<div class="alert alert-danger" role="alert">' + data.message + '</div>');
+                    modal.find('.modal-body').empty().append('<div class="alert alert-danger" role="alert">' + data.message + '</div>');
                     break;
             }         
+            modal.find('.modal-close').attr('disabled',false);
         }
     });
 });
