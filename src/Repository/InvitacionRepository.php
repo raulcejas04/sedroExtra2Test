@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Invitacion;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -47,4 +48,18 @@ class InvitacionRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function findInvitacionesByUser($user)
+    {
+        return $this->createQueryBuilder('i')
+            ->leftJoin('i.dispositivo', 'd', Join::WITH, 'd.fechaEliminacion IS NULL')
+            ->leftJoin('d.personaJuridica', 'pj', Join::WITH, 'pj.fechaEliminacion IS NULL')
+            ->leftJoin('pj.representaciones', 'r', Join::WITH, 'r.fechaEliminacion IS NULL')
+            ->andWhere('r.personaFisica = :pf OR i.origen = :pf')
+            ->setParameters([
+                "pf" => $user->getPersonaFisica()
+            ])
+            ->getQuery()
+            ->getResult();
+    }
 }

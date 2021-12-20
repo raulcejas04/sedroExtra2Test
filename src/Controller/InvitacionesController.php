@@ -37,11 +37,11 @@ class InvitacionesController extends AbstractController
     {
         $invitacion = $this->getDoctrine()->getManager()->getRepository(Invitacion::class)->findOneBy([
             "hash" => $hash,
-            "fechaEliminacion"=>null
+            "fechaEliminacion" => null
         ]);
 
-        if(!$invitacion){
-            $this->addFlash('danger','La invitación no se encuentra o no existe.');
+        if (!$invitacion) {
+            $this->addFlash('danger', 'La invitación no se encuentra o no existe.');
             return $this->redirectToRoute('dashboard');
         }
 
@@ -55,7 +55,13 @@ class InvitacionesController extends AbstractController
     #[Route('mis-invitaciones', name: 'mis_invitaciones')]
     public function misInvitaciones(): Response
     {
-        $invitaciones = $this->getDoctrine()->getRepository(Invitacion::class)->findBy(["fechaEliminacion"=>null]);
+        /* $invitaciones = $this->getDoctrine()->getRepository(Invitacion::class)->findBy([
+            "fechaEliminacion" => null,
+            "origen" => $this->getUser()->getPersonaFisica()
+        ]); */
+
+        $invitaciones = $this->getDoctrine()->getRepository(Invitacion::class)->findInvitacionesByUser($this->getUser());
+
         $response = $this->renderView('invitaciones/misInvitaciones.html.twig', [
             'invitaciones' => $invitaciones,
         ]);
@@ -96,12 +102,12 @@ class InvitacionesController extends AbstractController
             $origen = $this->getUser()->getPersonaFisica();
 
             if ($invitacion->getPersonaFisica()->getId() == $origen->getId()) {
-                $this->addFlash('error', 'No puedes invitarte a ti mismo.');
+                $this->addFlash('danger', 'No puedes invitarte a ti mismo.');
                 return $this->redirectToRoute('nueva_invitacion');
             }
 
             if ($this->getDoctrine()->getRepository(Invitacion::class)->findOneBy(['personaFisica' => $invitacion->getPersonaFisica(), 'dispositivo' => $invitacion->getDispositivo()])) {
-                $this->addFlash('error', 'Ya has enviado una invitación a esta persona.');
+                $this->addFlash('danger', 'Ya has enviado una invitación a esta persona.');
                 return $this->redirectToRoute('nueva_invitacion');
             }
             //  dd($invitacion);
@@ -192,7 +198,7 @@ class InvitacionesController extends AbstractController
         $em->persist($invitacion);
         $em->flush();
 
-        $this->addFlash('success', 'Invitación confirmada correctamente.');
+        $this->addFlash('success', "Invitación confirmada correctamente. Se ha enviado un email a {$invitacion->getEmail()} con los datos de acceso.");
         return $this->redirectToRoute('dashboard');
     }
 
@@ -266,7 +272,7 @@ class InvitacionesController extends AbstractController
             "fechaEliminacion" => null
         ]);
         if (!$invitacion) {
-            $this->addFlash('danger','La invitación no se encuentra o no existe');           
+            $this->addFlash('danger', 'La invitación no se encuentra o no existe');
             return new JsonResponse([
                 "status" => "error",
                 "html" => $this->renderView('modales/flashAlertsModal.html.twig')
@@ -274,7 +280,7 @@ class InvitacionesController extends AbstractController
         }
 
         if ($invitacion->getFechaUso()) {
-            $this->addFlash('danger','Los datos de la invitación ya han sido completados');           
+            $this->addFlash('danger', 'Los datos de la invitación ya han sido completados');
             return new JsonResponse([
                 "status" => "error",
                 "html" => $this->renderView('modales/flashAlertsModal.html.twig')
@@ -300,7 +306,7 @@ class InvitacionesController extends AbstractController
 
             $em->persist($invitacion);
             $em->flush($invitacion);
-                
+
             return new JsonResponse([
                 "status" => "success",
                 "message" => "Email reenviado con éxito. Se ha enviado un email a " . $invitacion->getEmail() . " con la invitación al dispositivo."
