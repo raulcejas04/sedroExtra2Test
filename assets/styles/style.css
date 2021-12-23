@@ -1645,7 +1645,8 @@ footer a:hover {color:#222;}
 }
 
 .footerbgsedronar{
-    background-image: url(../img/footer.svg);
+    /*background-image: url(../img/footer.svg);*/
+    background-image: url("/assets/img/footer.svg");
     background-repeat: no-repeat;
     -webkit-background-size: contain;
     background-size: contain;

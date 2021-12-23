@@ -21,8 +21,8 @@ security:
         main:
             form_login:
                 login_path: oauth_login
-            #logout:
-            #    path: oauth_logout
+            logout:
+                path: oauth_logout
             #    target: oauth_login
             guard:
                 authenticator:
@@ -41,5 +41,8 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+         - { path: ^/oauth/login, roles: IS_AUTHENTICATED_ANONYMOUSLY } //el login entra como anonimo porque sino se queda en loop
+         - { path: ^/public, roles: IS_AUTHENTICATED_ANONYMOUSLY } //el login entra como anonimo porque sino se queda en loop                
+         - { path: ^/, roles: ROLE_USER }
          - { path: ^/account/failure, roles: IS_AUTHENTICATED_ANONYMOUSLY }
          - { path: ^/dashboard, roles: ROLE_USER }

@@ -11,6 +11,7 @@ use App\Form\DispositivoType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\CallbackTransformer;
 
 class PersonaJuridicaCollectionType extends AbstractType
 {
@@ -23,6 +24,7 @@ class PersonaJuridicaCollectionType extends AbstractType
                 'attr' => [
                     'class' => 'form-control val-cuit',
                     'readonly' => true,
+                    'maxlength' => 13
                 ]
             ])
             ->add('razonSocial', TextType::class, [
@@ -43,6 +45,21 @@ class PersonaJuridicaCollectionType extends AbstractType
             //->add('fechaAlta')
             //->add('fechaBaja')
         ;
+        
+        
+        $builder->get('cuit')
+            ->addModelTransformer(new CallbackTransformer(
+                function ($cuit) {
+                	//20183019571
+                	//01234567890
+                    return substr($cuit,0,2)."-".substr($cuit,2,8)."-".substr($cuit,10,1);
+
+                },
+                function ($cuit) {
+                     return str_replace('-','',$cuit);
+                }
+            ));
+
     }
 
     public function configureOptions(OptionsResolver $resolver): void

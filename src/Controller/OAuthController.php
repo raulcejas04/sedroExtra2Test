@@ -71,6 +71,11 @@ class OAuthController extends AbstractController
         $this->get('security.token_storage')->setToken(null);
         $this->get('session')->invalidate();
         
+        
+        /*$request->session->clear();
+        $request->session->invalidate();
+        $request->user_is_logged_in = false;*/
+        
         return $this->redirectToRoute('dashboard');
     }
 

@@ -12,6 +12,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 
+use Symfony\Component\Form\CallbackTransformer;
+
 class PersonaFisicaCollectionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -96,9 +98,27 @@ class PersonaFisicaCollectionType extends AbstractType
                 ]
             ])
             ->addEventListener(
+                FormEvents::PRE_SET_DATA,
+                [$this, 'onPostSetData']
+                )
+            ->addEventListener(
                 FormEvents::POST_SUBMIT,
                 [$this, 'onPostSubmit']
-            )
+            );
+            
+            
+         $builder->get('cuitCuil')
+            ->addModelTransformer(new CallbackTransformer(
+                function ($cuitCuil) {
+                	//20183019571
+                	//01234567890
+                    return substr($cuitCuil,0,2)."-".substr($cuitCuil,2,8)."-".substr($cuitCuil,10,1);
+
+                },
+                function ($cuitCuil) {
+                     return str_replace('-','',$cuitCuil);
+                }
+            ))
         ;
     }
 
@@ -109,12 +129,27 @@ class PersonaFisicaCollectionType extends AbstractType
         ]);
     }
     
-    public function onPostSubmit(FormEvent $event): void
+    public function onPostSetData(FormEvent $event): void
     {
         $per = $event->getData();
         $form = $event->getForm();
-	$per->setCuitCuil(str_replace('-','',$per->getCuitCuil()));
-	
-	$event->setData($per);
+        //dd($form);
+        //20-18301957-1
+        //0123456789012
+        //$cuit=trim($per->getCuitCuil());
+        //$cuit=substr($cuit,0,2).'-'.substr($cuit,2,8)."-".substr($cuit,10,1);
+
+	//$per->setCuitCuil($cuit);
+	//dd($per);	
+	//$event->setData($per);
+	//dd($per->getCuitCuil());
+    }    
+    public function onPostSubmit(FormEvent $event): void
+    {
+        $per = $event->getData();
+        //$form = $event->getForm();
+	//$per->setCuitCuil(str_replace('-','',$per->getCuitCuil()));
+	//dd($per->getCuitCuil());
+	//$event->setData($per);
     }
 }

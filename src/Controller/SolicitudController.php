@@ -14,7 +14,7 @@ use App\Form\RepresentacionType;
 
 class SolicitudController extends AbstractController
 {
-    #[Route('solicitud/{hash}/completar-datos', name: 'solicitud-paso-2')]
+    #[Route('public/{hash}/completar-datos', name: 'solicitud-paso-2')]
     public function pasoDos(Request $request, $hash): Response
     {        
         $entityManager = $this->getDoctrine()->getManager();

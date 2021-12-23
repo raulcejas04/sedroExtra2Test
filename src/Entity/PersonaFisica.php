@@ -36,7 +36,7 @@ class PersonaFisica
     private $nroDoc;
 
     /**
-     * @ORM\Column(type="string", length=13)
+     * @ORM\Column(type="string", length=14)
      */
     private $cuitCuil;
 

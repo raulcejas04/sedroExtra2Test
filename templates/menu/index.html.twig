@@ -2,10 +2,10 @@
     <nav class="navbar navbar-expand-lg navbar-light bgsedronar">
         <div class="container-fluid">
              <a class="navbar-brand" href="#" style="margin-right: auto;" aria-label="SEDRONAR Presidencia de la Nación"> 
-              <img alt="sedronar" src="../img/logoSedronar.png" height="40px"> 
+              <img alt="sedronar" src="{{ asset('img/logoSedronar.png') }}" height="40px"> 
           </a> 
           <a class="navbar-brand"  href="#" aria-label="Jefatura de Gabinete de Ministros Argentina"> 
-              <img alt="Jefatura de Gabinete de Ministros Argentina" src="../img/jefgabinetearg.png" height="50px"> 
+              <img alt="Jefatura de Gabinete de Ministros Argentina" src="{{ asset('img/jefgabinetearg.png') }}" height="50px"> 
           </a> 
             <button type="button" class="navbar-toggler navbar-dark" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                 <span class="navbar-toggler-icon"></span>
@@ -49,11 +49,14 @@
 
 <!-- ///////////////// -->
                
-
+       {%if "public" not in app.request.uri %}
             <div class="navbar-nav ms-auto">
                 <div class="nav-item dropdown">
                 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                    <a href="#" class="text-white nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fs-4 bi bi-person-circle"></i> {{ app.user }} Diego Castaño</a>
+                    <a href="#" class="text-white nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fs-4 bi bi-person-circle"></i> 
+           		{%if app.user is defined and app.user is not null%}
+  	                  {{ app.user.username }} {#{{dump(app.user)}}#} </a>
+              		{%endif%}  	                  
                     <div class="dropdown-menu bgsedronar">
                         <a href="{{ path('change_password') }}" class="text-white dropdown-item">Cambio de clave</a>
                         <div class="dropdown-divider"></div>
@@ -69,5 +72,6 @@
             </div>
 
         </div>
+    {%endif%}  
     </nav>
 </div>

@@ -9,7 +9,7 @@ $('input[type=text]').each(
 	        if( myClass.indexOf("val-cuit") >= 0 )
 	        {
 
-	               input.bind("change blur",(event)=>{  
+	               input.bind("change blur mouseleave",(event)=>{  
 
 			    input[0].setCustomValidity("");
 			    if (!isValidCUITCUIL(input.val()))

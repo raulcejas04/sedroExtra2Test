@@ -1,11 +1,15 @@
 <!-- INICIO SIDEBAR -->
+{%if "public" not in app.request.uri %}
 <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bgsedronar sidebar collapse">
 <div class="position-sticky pt-3">
 
     <ul class="nav flex-column text-white w-100">
         <li>
           <a href="#submenu0" data-bs-toggle="collapse" class="nav-link px-0 align-middle text-white">
-              <i class="fs-4 bi bi-person-circle"></i> Diego
+              <i class="fs-4 bi bi-person-circle"></i> 
+              		{%if app.user is defined and app.user is not null%}
+              			{{ app.user.username }}
+              		{%endif%}
                     <span class="badge bg-danger" style="margin-left: 30px;">8</span><i class="bi bi-bell" style="color: white; margin-left: 6px;"> 
               </i>
           </a>
@@ -19,11 +23,8 @@
               </li>
           </ul>
         </li>
-
-        
-        
-     
     </ul>
 </div>
 </nav>
+{%endif%}
 <!-- FIN SIDEBAR -->
