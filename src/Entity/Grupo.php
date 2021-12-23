@@ -49,12 +49,18 @@ class Grupo {
      */
     private $realm;
 
+    /**
+     * @ORM\OneToMany(targetEntity=RoleGrupo::class, mappedBy="grupo")
+     */
+    private $rolesGrupo;
+
     public function __toString() {
-        return $this->getNombre();
+        return $this->getNombre() . " - " . $this->getRealm()->getRealm();
     }
 
     public function __construct() {
         $this->groupUsers = new ArrayCollection();
+        $this->rolesGrupo = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -149,6 +155,36 @@ class Grupo {
     public function setRealm(?Realm $realm): self
     {
         $this->realm = $realm;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RoleGrupo[]
+     */
+    public function getRolesGrupo(): Collection
+    {
+        return $this->rolesGrupo;
+    }
+
+    public function addRolesGrupo(RoleGrupo $rolesGrupo): self
+    {
+        if (!$this->rolesGrupo->contains($rolesGrupo)) {
+            $this->rolesGrupo[] = $rolesGrupo;
+            $rolesGrupo->setGrupo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRolesGrupo(RoleGrupo $rolesGrupo): self
+    {
+        if ($this->rolesGrupo->removeElement($rolesGrupo)) {
+            // set the owning side to null (unless already changed)
+            if ($rolesGrupo->getGrupo() === $this) {
+                $rolesGrupo->setGrupo(null);
+            }
+        }
 
         return $this;
     }

@@ -6,10 +6,12 @@ use App\Repository\PersonaFisicaRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=PersonaFisicaRepository::class)
  * @ORM\HasLifecycleCallbacks()
+ * @UniqueEntity(fields={"cuitCuil"},repositoryMethod="getCuitCuil", message="El CUIT/CUIL ingresado ya existe.")
  */
 class PersonaFisica
 {
@@ -46,9 +48,9 @@ class PersonaFisica
     private $fechaNac;
 
     /**
-     * @ORM\OneToOne(targetEntity=User::class, mappedBy="personaFisica",cascade={"persist"})
+     * @ORM\OneToMany(targetEntity=User::class, mappedBy="personaFisica",cascade={"persist"})
      */
-    private $user;
+    private $users;
 
     /**
      * @ORM\ManyToOne(targetEntity=TipoCuitCuil::class, inversedBy="personasFisicas")
@@ -106,6 +108,7 @@ class PersonaFisica
 
     public function __construct()
     {
+        $this->users = new ArrayCollection();
         $this->solicitudes = new ArrayCollection();
         $this->representaciones = new ArrayCollection();
         $this->admisiones = new ArrayCollection();
@@ -381,22 +384,33 @@ class PersonaFisica
     }
 
     /**
-     * Get the value of user
+     * @return Collection|User[]
      */
-    public function getUser()
+    public function getUsers(): Collection
     {
-        return $this->user;
+        return $this->users;
     }
 
-    /**
-     * Set the value of user
-     *
-     * @return  self
-     */
-    public function setUser($user)
+    public function addUser(User $user): self
     {
-        $this->user = $user;
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->setPersonaFisica($this);
+        }
 
         return $this;
     }
+
+    public function removeUser(User $user): self
+    {
+        if ($this->users->removeElement($user)) {
+            // set the owning side to null (unless already changed)
+            if ($user->getPersonaFisica() === $this) {
+                $user->setPersonaFisica(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

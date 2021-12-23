@@ -116,6 +116,17 @@ class Role {
      */
     private $fechaEliminacion;
 
+    /**
+     * @ORM\OneToMany(targetEntity=RoleGrupo::class, mappedBy="role")
+     */
+    private $rolesGrupo;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Realm::class, inversedBy="roles")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $realm;
+
     public function __toString() {
         return $this->getName();
     }
@@ -123,6 +134,7 @@ class Role {
     public function __construct() {
         $this->menus = new ArrayCollection();
         $this->userRoles = new ArrayCollection();
+        $this->rolesGrupo = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -331,6 +343,48 @@ class Role {
     public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
     {
         $this->fechaEliminacion = $fechaEliminacion;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RoleGrupo[]
+     */
+    public function getRolesGrupo(): Collection
+    {
+        return $this->rolesGrupo;
+    }
+
+    public function addRolesGrupo(RoleGrupo $rolesGrupo): self
+    {
+        if (!$this->rolesGrupo->contains($rolesGrupo)) {
+            $this->rolesGrupo[] = $rolesGrupo;
+            $rolesGrupo->setRole($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRolesGrupo(RoleGrupo $rolesGrupo): self
+    {
+        if ($this->rolesGrupo->removeElement($rolesGrupo)) {
+            // set the owning side to null (unless already changed)
+            if ($rolesGrupo->getRole() === $this) {
+                $rolesGrupo->setRole(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getRealm(): ?Realm
+    {
+        return $this->realm;
+    }
+
+    public function setRealm(?Realm $realm): self
+    {
+        $this->realm = $realm;
 
         return $this;
     }

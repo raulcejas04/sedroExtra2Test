@@ -74,17 +74,17 @@ class Solicitud
     private $usuario;
 
     /**
-     * @ORM\ManyToOne(targetEntity=PersonaFisica::class, inversedBy="solicitudes")
+     * @ORM\ManyToOne(targetEntity=PersonaFisica::class, inversedBy="solicitudes",cascade={"persist"})
      */
     private $personaFisica;
 
     /**
-     * @ORM\ManyToOne(targetEntity=PersonaJuridica::class, inversedBy="solicitudes")
+     * @ORM\ManyToOne(targetEntity=PersonaJuridica::class, inversedBy="solicitudes",cascade={"persist"})
      */
     private $personaJuridica;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Dispositivo::class, inversedBy="solicitudes")
+     * @ORM\ManyToOne(targetEntity=Dispositivo::class, inversedBy="solicitudes",cascade={"persist"})
      */
     private $dispositivo;
 

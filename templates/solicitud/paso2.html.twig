@@ -6,13 +6,11 @@
     <h2 class="text-center">Completar Solicitud</h2><br>
     <div class="row justify-content-md-center">
     <h2 class="text-center">Por favor, complete estos datos<br><small>Luego de un proceso de verificación podremos dar de alta su usuario y su dispositivo</small></h2>
-        <div class="col-7">
-
+        <div class="col-7">            
             {{ form_start(form)}}
             <div class="card">
                 <div class="card-body">
                     <h4>Datos: Persona Juríridica y Dispositivo</h4>
-
                     <div class="mb-3 row">
                         {{ form_label(form.personaJuridica.cuit, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
@@ -23,18 +21,16 @@
                     <div class="mb-3 row">
                         {{ form_label(form.personaJuridica.razonSocial, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaJuridica.razonSocial) }}                            
+                            {{ form_widget(form.personaJuridica.razonSocial,{'attr':{'readonly': existingPJ}}) }}                            
                             {{ form_errors(form.personaJuridica.razonSocial) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
-                        {% for dispo in form.personaJuridica.dispositivos %}
-                            {{ form_label(dispo.nicname, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
+                            {{ form_label(form.dispositivo.nicname, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                             <div class="col-sm-9">
-                                {{ form_widget(dispo.nicname) }}                                
-                                {{ form_errors(dispo.nicname) }}
+                                {{ form_widget(form.dispositivo.nicname) }}                                
+                                {{ form_errors(form.dispositivo.nicname) }}
                             </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -43,75 +39,74 @@
 
             <div class="card">
                 <div class="card-body g-3">
-                    <h4>Datos: Persona Física</h4>
-                    
+                    <h4>Datos: Persona Física</h4>                   
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.nombres, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.nombres) }}                            
+                            {{ form_widget(form.personaFisica.nombres,{'attr':{'readonly': existingPF}}) }}                            
                             {{ form_errors(form.personaFisica.nombres) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.apellido, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.apellido) }}                            
+                            {{ form_widget(form.personaFisica.apellido,{'attr':{'readonly': existingPF}}) }}                            
                             {{ form_errors(form.personaFisica.apellido) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.tipoDocumento, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.tipoDocumento) }}                            
+                            {{ form_widget(form.personaFisica.tipoDocumento,{'attr':{'disabled': existingPF ? 'disabled':false}}) }}                            
                             {{ form_errors(form.personaFisica.tipoDocumento) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.nroDoc, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.nroDoc) }}                            
+                            {{ form_widget(form.personaFisica.nroDoc,{'attr':{'readonly': existingPF}}) }}                            
                             {{ form_errors(form.personaFisica.nroDoc) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.sexo, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.sexo) }}                            
+                            {{ form_widget(form.personaFisica.sexo,{'attr':{'disabled': existingPF ? 'disabled':false}}) }}                            
                             {{ form_errors(form.personaFisica.sexo) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.estadoCivil, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.estadoCivil) }}                            
+                            {{ form_widget(form.personaFisica.estadoCivil,{'attr':{'disabled': existingPF ? 'disabled':false}}) }}                            
                             {{ form_errors(form.personaFisica.estadoCivil) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.tipoCuitCuil, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.tipoCuitCuil) }}                            
+                            {{ form_widget(form.personaFisica.tipoCuitCuil,{'attr':{'disabled': existingPF ? 'disabled':false}}) }}                            
                             {{ form_errors(form.personaFisica.tipoCuitCuil) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.cuitCuil, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.cuitCuil) }}                            
+                            {{ form_widget(form.personaFisica.cuitCuil,{'attr':{'readonly': existingPF}}) }}                            
                             {{ form_errors(form.personaFisica.cuitCuil) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.fechaNac, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.fechaNac) }}                            
+                            {{ form_widget(form.personaFisica.fechaNac,{'attr':{'readonly': existingPF}}) }}                            
                             {{ form_errors(form.personaFisica.fechaNac) }}
                         </div>
                     </div>
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.nacionalidad, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.nacionalidad) }}                            
+                            {{ form_widget(form.personaFisica.nacionalidad,{'attr':{'disabled': existingPF ? 'disabled':false}}) }}                            
                             {{ form_errors(form.personaFisica.nacionalidad) }}
                         </div>
                     </div>
@@ -137,4 +132,5 @@
     <br>
     <br>
      {{ encore_entry_script_tags('pasoDos') }}
+     
 {% endblock %}

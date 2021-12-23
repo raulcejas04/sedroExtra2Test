@@ -52,7 +52,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     private $username;
 
     /**
-     * @ORM\OneToOne(targetEntity=PersonaFisica::class, inversedBy="user")
+     * @ORM\ManyToOne(targetEntity=PersonaFisica::class, inversedBy="users")
+     * @ORM\JoinColumn(name="personaFisica", referencedColumnName="id")
      */
     private $personaFisica;
 
@@ -66,15 +67,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
      */
     private $usuarioDispositivos;
 
-     /**
+    /**
      * @ORM\OneToMany(targetEntity=UserGrupo::class, mappedBy="usuario",cascade={"persist"})
      */
     private $userGroups;
 
     /**
-     * @ORM\OneToMany(targetEntity=UserRealm::class, mappedBy="usuario")
+     * @ORM\ManyToOne(targetEntity=Realm::class, inversedBy="users")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private $userRealms;
+    private $realm;
 
     /**
      * @ORM\OneToMany(targetEntity=Alertas::class, mappedBy="usuario")
@@ -90,7 +92,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
         $this->solicitudes = new ArrayCollection();
         $this->usuarioDispositivos = new ArrayCollection();
         $this->userGroups = new ArrayCollection();
-        $this->userRealms = new ArrayCollection();
         $this->alertas = new ArrayCollection();
     }
 
@@ -258,33 +259,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     }
 
     /**
-     * @return Collection|UserRealm[]
-     */
-    public function getUserRealms(): Collection {
-        return $this->userRealms;
-    }
-
-    public function addUserRealm(UserRealm $userRealm): self {
-        if (!$this->userRealms->contains($userRealm)) {
-            $this->userRealms[] = $userRealm;
-            $userRealm->setUsuario($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUserRealm(UserRealm $userRealm): self {
-        if ($this->userRealms->removeElement($userRealm)) {
-            // set the owning side to null (unless already changed)
-            if ($userRealm->getUsuario() === $this) {
-                $userRealm->setUsuario(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Alertas[]
      */
     public function getAlertas(): Collection {
@@ -347,6 +321,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
                 $userGroup->setUsuario(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRealm(): ?Realm
+    {
+        return $this->realm;
+    }
+
+    public function setRealm(?Realm $realm): self
+    {
+        $this->realm = $realm;
 
         return $this;
     }

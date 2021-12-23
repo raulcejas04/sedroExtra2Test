@@ -3,7 +3,7 @@
     "app": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_function-bind-5f7bdc.js",
+        "/build/vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_is-array_js-n-373b19.js",
         "/build/vendors-node_modules_symfony_stimulus-bridge_dist_index_js-node_modules_bootstrap_dist_js_boo-91657a.js",
         "/build/app.js"
       ],
@@ -14,9 +14,22 @@
     "validarFormularios": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_function-bind-5f7bdc.js",
+        "/build/vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_is-array_js-n-373b19.js",
         "/build/vendors-node_modules_core-js_modules_es_array_index-of_js-node_modules_core-js_modules_es_arr-f04d09.js",
         "/build/validarFormularios.js"
+      ]
+    },
+    "pasoDos": {
+      "js": [
+        "/build/runtime.js",
+        "/build/pasoDos.js"
+      ]
+    },
+    "modales": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_is-array_js-n-373b19.js",
+        "/build/modales.js"
       ]
     }
   }

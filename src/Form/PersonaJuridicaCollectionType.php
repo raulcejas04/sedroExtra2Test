@@ -34,10 +34,10 @@ class PersonaJuridicaCollectionType extends AbstractType
                     'class' => 'form-control'
                 ]
             ])
-            ->add('dispositivos', CollectionType::class, [                
+           /*  ->add('dispositivos', CollectionType::class, [                
                 'entry_type' => DispositivoType::class,
                 'required' => true,                                
-            ])
+            ]) */
             ->addEventListener(
                 FormEvents::POST_SUBMIT,
                 [$this, 'onPostSubmit']
