@@ -67,6 +67,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
      */
     private $usuarioDispositivos;
 
+
     /**
      * @ORM\OneToMany(targetEntity=UserGrupo::class, mappedBy="usuario",cascade={"persist"})
      */

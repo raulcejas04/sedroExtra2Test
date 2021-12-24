@@ -36,10 +36,9 @@ class InvitacionType extends AbstractType
                 //query para mostrar en el select los dispositivos a cargo del usuario
                 'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('d')
-                        ->join('d.personaJuridica', 'pj')
-                        ->join('pj.representaciones', 'r')
+                        ->join('d.responsables', 'r')
                         ->join('r.personaFisica', 'pf')
-                        ->join('pf.user', 'u')
+                        ->join('pf.users', 'u')
                         ->where('u.id = :user')
                         ->setParameter('user', $this->token->getToken()->getUser()->getId())
                         ->orderBy('d.nicname', 'ASC');

@@ -106,6 +106,11 @@ class PersonaFisica
      */
     private $invitaciones;
 
+    /**
+     * @ORM\OneToMany(targetEntity=DispositivoResponsable::class, mappedBy="personaFisica")
+     */
+    private $dispositivosResponsable;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -113,6 +118,7 @@ class PersonaFisica
         $this->representaciones = new ArrayCollection();
         $this->admisiones = new ArrayCollection();
         $this->invitaciones = new ArrayCollection();
+        $this->dispositivosResponsable = new ArrayCollection();
     }
 
     public function __toString()
@@ -407,6 +413,36 @@ class PersonaFisica
             // set the owning side to null (unless already changed)
             if ($user->getPersonaFisica() === $this) {
                 $user->setPersonaFisica(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|DispositivoResponsable[]
+     */
+    public function getDispositivosResponsable(): Collection
+    {
+        return $this->dispositivosResponsable;
+    }
+
+    public function addDispositivosResponsable(DispositivoResponsable $dispositivosResponsable): self
+    {
+        if (!$this->dispositivosResponsable->contains($dispositivosResponsable)) {
+            $this->dispositivosResponsable[] = $dispositivosResponsable;
+            $dispositivosResponsable->setPersonaFisica($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispositivosResponsable(DispositivoResponsable $dispositivosResponsable): self
+    {
+        if ($this->dispositivosResponsable->removeElement($dispositivosResponsable)) {
+            // set the owning side to null (unless already changed)
+            if ($dispositivosResponsable->getPersonaFisica() === $this) {
+                $dispositivosResponsable->setPersonaFisica(null);
             }
         }
 
