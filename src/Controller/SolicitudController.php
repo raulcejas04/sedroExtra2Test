@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Entity\PersonaJuridica;
 use App\Entity\PersonaFisica;
 use App\Entity\Dispositivo;
+use App\Entity\DispositivoResponsable;
 use App\Form\PasoDosType;
 
 class SolicitudController extends AbstractController
@@ -34,12 +35,15 @@ class SolicitudController extends AbstractController
 
         //todo esto de acá abajo hasta el $form es para que el formulario se renderice con datos en readonly
 
+        //Si existe la Persona Fisica, la traigo
         $existingPersonaFisica = $entityManager->getRepository(PersonaFisica::class)->findOneBy(["cuitCuil" => $solicitud->getCuil()]);
         $personaFisica = $existingPersonaFisica ? $existingPersonaFisica : new PersonaFisica;
 
+         //Si existe la Persona Jurídica, la traigo
         $existingPersonaJuridica = $entityManager->getRepository(PersonaJuridica::class)->findOneBy(["cuit" => $solicitud->getCuil()]);
         $personaJuridica = $existingPersonaJuridica ? $existingPersonaJuridica : new PersonaJuridica;
 
+        //Instancia del dispositivo solo para readonly (no se persiste)
         $dispositivo = new Dispositivo;
         $dispositivo->setNicname($solicitud->getNicname());
         $pasoDos->setDispositivo($dispositivo);
@@ -54,7 +58,7 @@ class SolicitudController extends AbstractController
             $pasoDos->getPersonaJuridica()->setCuit($solicitud->getCuit());
         }
 
-        $pasoDos->getPersonaJuridica()->getDispositivos()->add($dispositivo);
+        //$pasoDos->getPersonaJuridica()->getDispositivos()->add($dispositivo);
 
         $form = $this->createForm(PasoDosType::class, $pasoDos);
         $form->handleRequest($request);
@@ -63,9 +67,9 @@ class SolicitudController extends AbstractController
             $solicitud->setPersonaFisica($pasoDos->getPersonaFisica());
             $solicitud->setPersonaJuridica($pasoDos->getPersonaJuridica());
             $solicitud->setFechaUso(new \DateTime('now'));
-            $solicitud->setDispositivo($dispositivo);
+           // $solicitud->setDispositivo($dispositivo);
             $solicitud->setUsada(true);
-            $dispositivo->setPersonaJuridica($personaJuridica);
+
             $entityManager->persist($solicitud);
          //   $entityManager->persist($dispositivo);
             $entityManager->flush();
