@@ -104,6 +104,16 @@ class Solicitud
     private $fechaEliminacion;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $aceptada;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $observacionRechazo;
+
+    /**
      * @ORM\PrePersist
      */
     public function setPrePersistValues(): void
@@ -317,6 +327,30 @@ class Solicitud
     public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
     {
         $this->fechaEliminacion = $fechaEliminacion;
+
+        return $this;
+    }
+
+    public function getAceptada(): ?bool
+    {
+        return $this->aceptada;
+    }
+
+    public function setAceptada(?bool $aceptada): self
+    {
+        $this->aceptada = $aceptada;
+
+        return $this;
+    }
+
+    public function getObservacionRechazo(): ?string
+    {
+        return $this->observacionRechazo;
+    }
+
+    public function setObservacionRechazo(?string $observacionRechazo): self
+    {
+        $this->observacionRechazo = $observacionRechazo;
 
         return $this;
     }

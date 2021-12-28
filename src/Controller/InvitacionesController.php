@@ -11,6 +11,7 @@ use Symfony\Component\Mailer\MailerInterface;
 
 use App\Entity\Invitacion;
 use App\Entity\PersonaFisica;
+use App\Entity\Realm;
 use App\Entity\User;
 use App\Entity\UsuarioDispositivo;
 use App\Form\InvitacionType;
@@ -171,21 +172,19 @@ class InvitacionesController extends AbstractController
         $invitacion->setAceptada(true);
         $persona = $invitacion->getPersonaFisica();
 
-        if (!$persona->getUser()) {
-            // $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
+        $realm = $em->getRepository(Realm::class)->findOneBy(["realm" => $this->getParameter('keycloak_realm')]);
+        $existingUser = $em->getRepository(User::class)->findByUserUsernameAndRealm($persona->getCuitCuil(), $realm);
+
+        if (!$existingUser) {
             //Crea usuario en keycloak y en la tabla usuarios
-            $this->crearUsuario($persona, $invitacion->getEmail(), $mailer);
-        } else {
-            if ($persona->getUser()->getEmail() != $invitacion->getEmail()) {
-                $this->addFlash('danger', "El correo ingresado es diferente al que posee el usuario. Se envió el correo a: {$persona->getUser()->getEmail()}");
-            }
+            $existingUser = $this->crearUsuarioEnKeycloak($persona, $invitacion->getEmail(), $mailer);
         }
 
         //Asignamos el usuario al dispositivo
         $dispositivo = $invitacion->getDispositivo();
         $usuarioDispositivo = new UsuarioDispositivo();
         $usuarioDispositivo->setDispositivo($dispositivo);
-        $usuarioDispositivo->setUsuario($persona->getUser());
+        $usuarioDispositivo->setUsuario($existingUser);
         //TODO:Inyectar este seteo mediante un servicio o función
         $usuarioDispositivo->setFechaAlta(new DateTime());
         $dispositivo->addUsuarioDispositivo($usuarioDispositivo);
@@ -193,7 +192,7 @@ class InvitacionesController extends AbstractController
         //TODO: No hardcodear, traer desde dispositivo->tipoDispositivo->grupos
         //Hardcodeado para testear
         $groups = ["Administradores"];
-        $this->asignarGrupos($persona->getUser(), $groups);
+        $this->asignarGrupos($existingUser, $groups);
 
         $em->persist($invitacion);
         $em->flush();
@@ -323,14 +322,25 @@ class InvitacionesController extends AbstractController
     }
 
 
-    public function crearUsuario($persona, $email, MailerInterface $mailer)
+    public function crearUsuarioEnKeycloak($persona, $email, MailerInterface $mailer)
     {
         $em = $this->getDoctrine()->getManager();
         $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
         $userByUsernameResponse = $this->intranetService->getUserByUsername($persona->getCuitCuil());
         $userByEmailResponse = $this->intranetService->getUserByEmail($email);
+        $existingUserDB = $em->getRepository(User::class)->findByUsernameOrEmail($persona->getCuitCuil(), $email);
 
-        if (empty($userByUsernameResponse) || empty($userByEmailResponse)) {
+        if ((!empty($userByUsernameResponse) || !empty($userByEmailResponse) and $existingUserDB == null)) {
+            $this->addFlash('danger', 'Inconsistencia: el usuario existe en keycloak pero no en la DB.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ((empty($userByUsernameResponse) || empty($userByEmailResponse) and $existingUserDB != null)) {
+            $this->addFlash('danger', 'Inconsistencia: el usuario no existe en keycloak pero si en la DB.');
+            return $this->redirectToRoute('dashboard');
+        }
+
+        if ((empty($userByUsernameResponse) || empty($userByEmailResponse) and $existingUserDB == null)) {
             $data = $this->intranetService->postUser(
                 $persona->getCuitCuil(),
                 $password,
@@ -343,6 +353,16 @@ class InvitacionesController extends AbstractController
                 $this->addFlash('danger', 'Hubo un error, la operación no pudo completarse');
                 return $this->redirectToRoute('dashboard');
             }
+
+            $keycloakUser = $this->intranetService->getUserByUsername($persona->getCuitCuil());
+
+            $user = new User;
+            $user->setUsername($persona->getCuitCuil());
+            $user->setEmail($email);
+            $user->setKeycloakId($keycloakUser[0]->id);
+            $user->setPassword('');
+            $persona->addUser($user);
+            $user->setPersonaFisica($persona);
 
             //Envía un email    
             $url = $this->getParameter('extranet_app_url');
@@ -358,26 +378,12 @@ class InvitacionesController extends AbstractController
                     'url' => $url
                 ]);
             $mailer->send($templatedEmail);
-        }
 
-        $existingUser = $em->getRepository(User::class)->findByUsernameOrEmail($persona->getCuitCuil(), $email);
-        $keycloakUser = $this->intranetService->getUserByUsername($persona->getCuitCuil());
-
-        if (!$existingUser) {
-            $user = new User;
-            $user->setUsername($persona->getCuitCuil());
-            $user->setEmail($email);
-            $user->setKeycloakId($keycloakUser[0]->id);
-            $user->setPassword('');
-            $persona->setUser($user);
-            $user->setPersonaFisica($persona);
             return $user;
-        } else {
-            $existingUser->setKeycloakId($keycloakUser[0]->id);
-            $persona->setUser($existingUser);
-            $existingUser->setPersonaFisica($persona);
-            return $existingUser;
         }
+
+        $this->addFlash('danger', 'Ha ocurrido un error y la opreación no ha podido completarse.');
+        return $this->redirectToRoute('dashboard');
     }
 
     public function asignarGrupos($user, $groups)

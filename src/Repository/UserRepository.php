@@ -46,6 +46,17 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getOneOrNullResult();
     }
 
+    public function findByUserUsernameAndRealm($username, $realm)
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.username = :username')
+            ->andWhere('u.realm = :realm')
+            ->andWhere('u.fechaEliminacion IS NULL')
+            ->setParameters(['username' => $username, 'realm' => $realm])
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     // /**
     //  * @return User[] Returns an array of User objects
     //  */
