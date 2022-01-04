@@ -16,7 +16,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @UniqueEntity(fields={"username"}, message="El nombre de usuario ingresado ya existe.")
  * @UniqueEntity(fields={"email"}, message="El email ingresado ya existe.")
  */
-class User implements UserInterface, PasswordAuthenticatedUserInterface {
+class User implements UserInterface, PasswordAuthenticatedUserInterface
+{
 
     /**
      * @ORM\Id
@@ -67,7 +68,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
      */
     private $usuarioDispositivos;
 
-
     /**
      * @ORM\OneToMany(targetEntity=UserGrupo::class, mappedBy="usuario",cascade={"persist"})
      */
@@ -89,26 +89,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
      */
     private $fechaEliminacion;
 
-    public function __construct() {
+    /**
+     * @ORM\OneToMany(targetEntity=IssueReport::class, mappedBy="usuario")
+     */
+    private $issuesReports;
+
+
+    public function __construct()
+    {
         $this->solicitudes = new ArrayCollection();
         $this->usuarioDispositivos = new ArrayCollection();
         $this->userGroups = new ArrayCollection();
         $this->alertas = new ArrayCollection();
+        $this->issuesReports = new ArrayCollection();
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->getUserIdentifier();
     }
 
-    public function getId(): ?int {
+    public function getId(): ?int
+    {
         return $this->id;
     }
 
-    public function getEmail(): ?string {
+    public function getEmail(): ?string
+    {
         return $this->email;
     }
 
-    public function setEmail(string $email): self {
+    public function setEmail(string $email): self
+    {
         $this->email = $email;
 
         return $this;
@@ -119,21 +131,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
      *
      * @see UserInterface
      */
-    public function getUserIdentifier(): string {
+    public function getUserIdentifier(): string
+    {
         return (string) $this->username;
     }
 
     /**
      * @deprecated since Symfony 5.3, use getUserIdentifier instead
      */
-    public function getUsername(): string {
+    public function getUsername(): string
+    {
         return (string) $this->username;
     }
 
     /**
      * @see UserInterface
      */
-    public function getRoles(): array {
+    public function getRoles(): array
+    {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
@@ -141,7 +156,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
         return array_unique($roles);
     }
 
-    public function setRoles(array $roles): self {
+    public function setRoles(array $roles): self
+    {
         $this->roles = $roles;
 
         return $this;
@@ -150,11 +166,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     /**
      * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): string {
+    public function getPassword(): string
+    {
         return $this->password;
     }
 
-    public function setPassword(string $password): self {
+    public function setPassword(string $password): self
+    {
         $this->password = $password;
 
         return $this;
@@ -166,40 +184,47 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
      *
      * @see UserInterface
      */
-    public function getSalt(): ?string {
+    public function getSalt(): ?string
+    {
         return null;
     }
 
     /**
      * @see UserInterface
      */
-    public function eraseCredentials() {
+    public function eraseCredentials()
+    {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
 
-    public function getKeycloakId(): ?string {
+    public function getKeycloakId(): ?string
+    {
         return $this->KeycloakId;
     }
 
-    public function setKeycloakId(?string $KeycloakId): self {
+    public function setKeycloakId(?string $KeycloakId): self
+    {
         $this->KeycloakId = $KeycloakId;
 
         return $this;
     }
 
     //public function setUsername(string $username): self
-    public function setUsername(string $username) {
+    public function setUsername(string $username)
+    {
         $this->username = $username;
 
         return $this;
     }
 
-    public function getPersonaFisica(): ?PersonaFisica {
+    public function getPersonaFisica(): ?PersonaFisica
+    {
         return $this->personaFisica;
     }
 
-    public function setPersonaFisica(?PersonaFisica $personaFisica): self {
+    public function setPersonaFisica(?PersonaFisica $personaFisica): self
+    {
         $this->personaFisica = $personaFisica;
 
         return $this;
@@ -208,11 +233,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     /**
      * @return Collection|Solicitud[]
      */
-    public function getSolicitudes(): Collection {
+    public function getSolicitudes(): Collection
+    {
         return $this->solicitudes;
     }
 
-    public function addSolicitude(Solicitud $solicitude): self {
+    public function addSolicitude(Solicitud $solicitude): self
+    {
         if (!$this->solicitudes->contains($solicitude)) {
             $this->solicitudes[] = $solicitude;
             $solicitude->setUsuario($this);
@@ -221,7 +248,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
         return $this;
     }
 
-    public function removeSolicitude(Solicitud $solicitude): self {
+    public function removeSolicitude(Solicitud $solicitude): self
+    {
         if ($this->solicitudes->removeElement($solicitude)) {
             // set the owning side to null (unless already changed)
             if ($solicitude->getUsuario() === $this) {
@@ -235,11 +263,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     /**
      * @return Collection|UsuarioDispositivo[]
      */
-    public function getUsuarioDispositivos(): Collection {
+    public function getUsuarioDispositivos(): Collection
+    {
         return $this->usuarioDispositivos;
     }
 
-    public function addUsuarioDispositivo(UsuarioDispositivo $usuarioDispositivo): self {
+    public function addUsuarioDispositivo(UsuarioDispositivo $usuarioDispositivo): self
+    {
         if (!$this->usuarioDispositivos->contains($usuarioDispositivo)) {
             $this->usuarioDispositivos[] = $usuarioDispositivo;
             $usuarioDispositivo->setUsuario($this);
@@ -248,7 +278,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
         return $this;
     }
 
-    public function removeUsuarioDispositivo(UsuarioDispositivo $usuarioDispositivo): self {
+    public function removeUsuarioDispositivo(UsuarioDispositivo $usuarioDispositivo): self
+    {
         if ($this->usuarioDispositivos->removeElement($usuarioDispositivo)) {
             // set the owning side to null (unless already changed)
             if ($usuarioDispositivo->getUsuario() === $this) {
@@ -262,11 +293,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     /**
      * @return Collection|Alertas[]
      */
-    public function getAlertas(): Collection {
+    public function getAlertas(): Collection
+    {
         return $this->alertas;
     }
 
-    public function addAlerta(Alertas $alerta): self {
+    public function addAlerta(Alertas $alerta): self
+    {
         if (!$this->alertas->contains($alerta)) {
             $this->alertas[] = $alerta;
             $alerta->setUsuario($this);
@@ -275,7 +308,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
         return $this;
     }
 
-    public function removeAlerta(Alertas $alerta): self {
+    public function removeAlerta(Alertas $alerta): self
+    {
         if ($this->alertas->removeElement($alerta)) {
             // set the owning side to null (unless already changed)
             if ($alerta->getUsuario() === $this) {
@@ -286,11 +320,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
         return $this;
     }
 
-    public function getFechaEliminacion(): ?\DateTimeInterface {
+    public function getFechaEliminacion(): ?\DateTimeInterface
+    {
         return $this->fechaEliminacion;
     }
 
-    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self {
+    public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
+    {
         $this->fechaEliminacion = $fechaEliminacion;
 
         return $this;
@@ -334,6 +370,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface {
     public function setRealm(?Realm $realm): self
     {
         $this->realm = $realm;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|IssueReport[]
+     */
+    public function getIssuesReports(): Collection
+    {
+        return $this->issuesReports;
+    }
+
+    public function addIssuesReport(IssueReport $issuesReport): self
+    {
+        if (!$this->issuesReports->contains($issuesReport)) {
+            $this->issuesReports[] = $issuesReport;
+            $issuesReport->setUsuario($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIssuesReport(IssueReport $issuesReport): self
+    {
+        if ($this->issuesReports->removeElement($issuesReport)) {
+            // set the owning side to null (unless already changed)
+            if ($issuesReport->getUsuario() === $this) {
+                $issuesReport->setUsuario(null);
+            }
+        }
 
         return $this;
     }

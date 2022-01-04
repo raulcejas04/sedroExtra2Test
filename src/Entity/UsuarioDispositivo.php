@@ -10,6 +10,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class UsuarioDispositivo
 {
+
+    CONST NIVEL_1 = 1;//PASTOR JOAO
+    CONST NIVEL_2 = 2;//PASTOR GIMENEZ 
+    CONST NIVEL_3 = 3;//JONY
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -47,6 +52,11 @@ class UsuarioDispositivo
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $fechaEliminacion;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $nivel;
 
     public function getId(): ?int
     {
@@ -121,6 +131,18 @@ class UsuarioDispositivo
     public function setFechaEliminacion(?\DateTimeInterface $fechaEliminacion): self
     {
         $this->fechaEliminacion = $fechaEliminacion;
+
+        return $this;
+    }
+
+    public function getNivel(): ?int
+    {
+        return $this->nivel;
+    }
+
+    public function setNivel(int $nivel): self
+    {
+        $this->nivel = $nivel;
 
         return $this;
     }

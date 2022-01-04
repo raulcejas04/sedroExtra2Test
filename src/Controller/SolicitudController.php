@@ -12,6 +12,7 @@ use App\Entity\PersonaFisica;
 use App\Entity\Dispositivo;
 use App\Entity\DispositivoResponsable;
 use App\Form\PasoDosType;
+use DateTime;
 
 class SolicitudController extends AbstractController
 {
@@ -21,8 +22,9 @@ class SolicitudController extends AbstractController
         $entityManager = $this->getDoctrine()->getManager();
         $solicitud = $entityManager->getRepository('App:Solicitud')->findOneByHash($hash);
         if (!$solicitud) {
+            $this->addFlash('danger', 'La solicitud no existe o no se encuentra.');
             //TODO: que redirija al home cuando el mismo esté listo
-            //TODO: Que no se pueda errar de hash más de 5 veces por IP por hora
+            //TODO: Que no se pueda errar de hash más de 5 veces por IP por hora}
             return $this->redirectToRoute('home');
         }
         if ($solicitud->getUsada() == true) {
@@ -40,9 +42,9 @@ class SolicitudController extends AbstractController
         $personaFisica = $existingPersonaFisica ? $existingPersonaFisica : new PersonaFisica;
 
          //Si existe la Persona Jurídica, la traigo
-        $existingPersonaJuridica = $entityManager->getRepository(PersonaJuridica::class)->findOneBy(["cuit" => $solicitud->getCuil()]);
+        $existingPersonaJuridica = $entityManager->getRepository(PersonaJuridica::class)->findOneBy(["cuit" => $solicitud->getCuit()]);
         $personaJuridica = $existingPersonaJuridica ? $existingPersonaJuridica : new PersonaJuridica;
-
+        
         //Instancia del dispositivo solo para readonly (no se persiste)
         $dispositivo = new Dispositivo;
         $dispositivo->setNicname($solicitud->getNicname());
@@ -55,6 +57,7 @@ class SolicitudController extends AbstractController
 
         $pasoDos->setPersonaJuridica($personaJuridica);
         if (!$existingPersonaJuridica) {
+            $personaJuridica->setFechaAlta(new DateTime());
             $pasoDos->getPersonaJuridica()->setCuit($solicitud->getCuit());
         }
 

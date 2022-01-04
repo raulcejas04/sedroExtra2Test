@@ -50,11 +50,6 @@ class Dispositivo
     private $usuarioDispositivos;
 
     /**
-     * @ORM\OneToMany(targetEntity=DispositivoResponsable::class, mappedBy="dispositivo",cascade={"persist"})
-     */
-    private $responsables;
-
-    /**
      * @ORM\ManyToOne(targetEntity=TipoDispositivo::class, inversedBy="dispositivos")
      */
     private $tipoDispositivo;
@@ -80,7 +75,6 @@ class Dispositivo
         $this->usuarioDispositivos = new ArrayCollection();
         $this->admisiones = new ArrayCollection();
         $this->invitaciones = new ArrayCollection();
-        $this->responsables = new ArrayCollection();
     }
 
     public function __toString()
@@ -285,33 +279,4 @@ class Dispositivo
         return $this;
     }
 
-    /**
-     * @return Collection|DispositivoResponsable[]
-     */
-    public function getResponsables(): Collection
-    {
-        return $this->responsables;
-    }
-
-    public function addResponsable(DispositivoResponsable $responsable): self
-    {
-        if (!$this->responsables->contains($responsable)) {
-            $this->responsables[] = $responsable;
-            $responsable->setDispositivo($this);
-        }
-
-        return $this;
-    }
-
-    public function removeResponsable(DispositivoResponsable $responsable): self
-    {
-        if ($this->responsables->removeElement($responsable)) {
-            // set the owning side to null (unless already changed)
-            if ($responsable->getDispositivo() === $this) {
-                $responsable->setDispositivo(null);
-            }
-        }
-
-        return $this;
-    }
 }
