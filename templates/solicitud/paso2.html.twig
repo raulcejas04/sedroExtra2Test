@@ -26,10 +26,10 @@
                         </div>
                     </div>
                     <div class="mb-3 row">
-                            {{ form_label(form.dispositivo.nicname, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
+                            {{ form_label(form.nicname, 'Nombre corto del Dispositivo', { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                             <div class="col-sm-9">
-                                {{ form_widget(form.dispositivo.nicname) }}                                
-                                {{ form_errors(form.dispositivo.nicname) }}
+                                {{ form_widget(form.nicname) }}                                
+                                {{ form_errors(form.nicname) }}
                             </div>
                     </div>
                 </div>
@@ -92,7 +92,7 @@
                     <div class="mb-3 row">
                         {{ form_label(form.personaFisica.cuitCuil, null, { 'label_attr': {'class': 'col-sm-3 col-form-label'} }) }}
                         <div class="col-sm-9">
-                            {{ form_widget(form.personaFisica.cuitCuil,{'attr':{'readonly': existingPF}}) }}                            
+                            {{ form_widget(form.personaFisica.cuitCuil,{'attr':{'readonly': true}}) }}                            
                             {{ form_errors(form.personaFisica.cuitCuil) }}
                         </div>
                     </div>

@@ -11,11 +11,20 @@ use App\Entity\PersonaJuridica;
 use App\Entity\PersonaFisica;
 use App\Entity\Dispositivo;
 use App\Entity\DispositivoResponsable;
+use App\Entity\Solicitud;
 use App\Form\PasoDosType;
+use App\Service\ValidarSolicitudSrv;
 use DateTime;
 
 class SolicitudController extends AbstractController
 {
+    private $validador;
+
+    public function __construct(ValidarSolicitudSrv $validador)
+    {
+        $this->validador = $validador;
+    }
+
     #[Route('public/{hash}/completar-datos', name: 'solicitud-paso-2')]
     public function pasoDos(Request $request, $hash): Response
     {
@@ -33,49 +42,23 @@ class SolicitudController extends AbstractController
             return $this->redirectToRoute('home');
         }
 
-        $pasoDos = new PasoDos;
-
-        //todo esto de acá abajo hasta el $form es para que el formulario se renderice con datos en readonly
-
-        //Si existe la Persona Fisica, la traigo
-        $existingPersonaFisica = $entityManager->getRepository(PersonaFisica::class)->findOneBy(["cuitCuil" => $solicitud->getCuil()]);
-        $personaFisica = $existingPersonaFisica ? $existingPersonaFisica : new PersonaFisica;
-
-         //Si existe la Persona Jurídica, la traigo
-        $existingPersonaJuridica = $entityManager->getRepository(PersonaJuridica::class)->findOneBy(["cuit" => $solicitud->getCuit()]);
-        $personaJuridica = $existingPersonaJuridica ? $existingPersonaJuridica : new PersonaJuridica;
-        
-        //Instancia del dispositivo solo para readonly (no se persiste)
-        $dispositivo = new Dispositivo;
-        $dispositivo->setNicname($solicitud->getNicname());
-        $pasoDos->setDispositivo($dispositivo);
-
-        $pasoDos->setPersonaFisica($personaFisica);
-        if (!$existingPersonaFisica) {
-            $pasoDos->getPersonaFisica()->setCuitCuil($solicitud->getCuil());
-        }
-
-        $pasoDos->setPersonaJuridica($personaJuridica);
-        if (!$existingPersonaJuridica) {
-            $personaJuridica->setFechaAlta(new DateTime());
-            $pasoDos->getPersonaJuridica()->setCuit($solicitud->getCuit());
-        }
-
-        //$pasoDos->getPersonaJuridica()->getDispositivos()->add($dispositivo);
-
-        $form = $this->createForm(PasoDosType::class, $pasoDos);
+        $form = $this->createForm(PasoDosType::class, $solicitud);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $solicitud->setPersonaFisica($pasoDos->getPersonaFisica());
-            $solicitud->setPersonaJuridica($pasoDos->getPersonaJuridica());
-            $solicitud->setFechaUso(new \DateTime('now'));
-           // $solicitud->setDispositivo($dispositivo);
-            $solicitud->setUsada(true);
+           /*  $solicitud->setPersonaFisica($pasoDos->getPersonaFisica());
+            $solicitud->setPersonaJuridica($pasoDos->getPersonaJuridica()); */
+        
+            $validacion = $this->validador->validarSolicitud($solicitud, $this->getParameter('keycloak_realm'), Solicitud::PASO_DOS);
+            if (!$validacion["flagOk"]) {
+                $this->addFlash('danger', $validacion["message"]);
+                return $this->redirectToRoute('dashboard');
+            }
 
+            $solicitud = $validacion["solicitud"];
             $entityManager->persist($solicitud);
-         //   $entityManager->persist($dispositivo);
-            $entityManager->flush();
+            $entityManager->flush();          
+            $this->addFlash('success', $validacion["message"]);
 
             $this->addFlash('success', 'Datos completados con éxito!');
 
@@ -86,8 +69,8 @@ class SolicitudController extends AbstractController
         return $this->renderForm('solicitud/paso2.html.twig', [
             'form' => $form,
             'solicitud' => $solicitud,
-            'existingPF' => (bool)$existingPersonaFisica,
-            'existingPJ' => (bool)$existingPersonaJuridica
+            'existingPF' => (bool)$solicitud->getPersonaFisica(),
+            'existingPJ' => (bool)$solicitud->getPersonaJuridica()
         ]);
     }
 }

@@ -11,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Solicitud
 {
+    CONST PASO_UNO = '1';
+    CONST PASO_DOS = '2';
+    CONST PASO_TRES ='3';
+
+    //TODO: observacion y observacionRechazo es lo mismo??
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -118,8 +123,12 @@ class Solicitud
      */
     public function setPrePersistValues(): void
     {
-        $this->creacion = new \DateTimeImmutable();
+        $creacion = new \DateTimeImmutable();
+        $fechaExpiracion = $creacion->modify('+7 days');
+        
+        $this->creacion = $creacion;
         $this->usada = false;
+        $this->fechaExpiracion = $fechaExpiracion;
     }
 
     public function getId(): ?int

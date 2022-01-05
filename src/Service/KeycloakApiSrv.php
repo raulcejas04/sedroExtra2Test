@@ -3,12 +3,10 @@
 namespace App\Service;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use GuzzleHttp;
-
 
 /**
  * Sumario controller.
@@ -27,7 +25,7 @@ class KeycloakApiSrv extends AbstractController {
      * POST /realms/master/protocol/openid-connect/token
      */
     public function getTokenAdmin() {
-        $base_uri_keycloak = $this->parameterBag->get('keycloak_url');
+        $base_uri_keycloak = $this->parameterBag->get('keycloak-server-url');
         $uri = $base_uri_keycloak . '/realms/master/protocol/openid-connect/token';
         $parametros = [
             'form_params' => [
@@ -75,7 +73,7 @@ class KeycloakApiSrv extends AbstractController {
         // example creating user https://www.appsdeveloperblog.com/keycloak-rest-api-create-a-new-user/
 
         $token = $this->getTokenAdmin();
-        $base_uri_keycloak = $this->parameterBag->get('keycloak_url');
+        $base_uri_keycloak = $this->parameterBag->get('keycloak-server-url');
         $uri = $base_uri_keycloak . '/admin/realms/{realm}/users';
         //$realm=$this->getParameter('keycloak_realm');
         $uri = str_replace("{realm}", $realm, $uri);
@@ -248,8 +246,8 @@ class KeycloakApiSrv extends AbstractController {
 
         $res = $this->client->get($uri, $params);
         $data = json_decode($res->getBody());
-
-        return new JsonResponse($data);
+        return $data;
+        //return new JsonResponse($data);
     }
 
     /**
@@ -292,8 +290,24 @@ class KeycloakApiSrv extends AbstractController {
         ];
         //echo $uri."<br>";
         $res = $this->client->get($uri, $params);
-        $data = json_decode($res->getBody());
-        return new JsonResponse($data[0]);
+        return json_decode($res->getBody());
+    }
+
+    public function getUserByEmailAndRealm($email, $realm) {
+        $token = $this->getTokenAdmin();
+
+        $auth_url = $this->parameterBag->get('keycloak-server-url');
+        $uri = $auth_url . "/admin/realms/{realm}/users";
+        //$realm=$this->getParameter('keycloak-realm');
+
+        $uri = str_replace("{realm}", $realm, $uri);
+        $uri = $uri . "?email=" . $email;
+
+        $params = ['headers' => ['Authorization' => "Bearer " . $token->access_token]
+        ];
+        //echo $uri."<br>";
+        $res = $this->client->get($uri, $params);
+        return json_decode($res->getBody());
     }
 
     public function getUserByIdAndRealm($id, $realm) {
@@ -359,11 +373,11 @@ class KeycloakApiSrv extends AbstractController {
     /**
      * GET /admin/realms/{realm}/groups 
      */
-    public function getGroup($name, $briefRepresentation = false) {
+    public function getGroup($name, $realm, $briefRepresentation = false) {
         $token = $this->getTokenAdmin();
         $auth_url = $this->parameterBag->get('keycloak-server-url');
         $uri = $auth_url . "/admin/realms/{realm}/groups";
-        $realm = $this->parameterBag->get('keycloak_realm');
+        //$realm = $this->parameterBag->get('keycloak_realm');
         //briefRepresentation sirve para mostrar los atributos y demás valores del grupo
         $uri = str_replace("{realm}", $realm, $uri) . "?briefRepresentation=" . ($briefRepresentation ? "true" : "false");
         $params = ['headers' => ['Authorization' => "Bearer " . $token->access_token]];
@@ -382,11 +396,11 @@ class KeycloakApiSrv extends AbstractController {
     /**
      * GET /admin/realms/{realm}/groups 
      */
-    public function getRole($name, $briefRepresentation = false) {
+    public function getRole($name,$realm, $briefRepresentation = false) {
         $token = $this->getTokenAdmin();
         $auth_url = $this->parameterBag->get('keycloak-server-url');
         $uri = $auth_url . "/admin/realms/{realm}/roles";
-        $realm = $this->parameterBag->get('keycloak_realm');
+       // $realm = $this->parameterBag->get('keycloak_realm');
         //briefRepresentation sirve para mostrar los atributos y demás valores del grupo
         $uri = str_replace("{realm}", $realm, $uri) . "?briefRepresentation=" . ($briefRepresentation ? "true" : "false");
         $params = ['headers' => ['Authorization' => "Bearer " . $token->access_token]];
@@ -640,4 +654,89 @@ class KeycloakApiSrv extends AbstractController {
         return new JsonResponse($data);
     }
 
+
+     /**
+     * GET /admin/realms
+     */
+    public function getRealms() {
+        $token = $this->getTokenAdmin();
+        $auth_url = $this->parameterBag->get('keycloak-server-url');
+        $uri = $auth_url . "/admin/realms";
+        $params = ['headers' => ['Authorization' => "Bearer " . $token->access_token]];
+
+        $res = $this->client->get($uri, $params);
+        $data = json_decode($res->getBody());
+
+        return $data;
+    }
+
+     /**
+     * GET /admin/realms/{realm}/groups 
+     */
+    public function getGroups($realm ,$briefRepresentation = false) {
+        $token = $this->getTokenAdmin();
+        $auth_url = $this->parameterBag->get('keycloak-server-url');
+        $uri = $auth_url . "/admin/realms/{realm}/groups";
+      //  $realm = $this->parameterBag->get('keycloak_realm');
+        //briefRepresentation sirve para mostrar los atributos y demás valores del grupo
+        $uri = str_replace("{realm}", $realm, $uri) . "?briefRepresentation=" . ($briefRepresentation ? "true" : "false");
+        $params = ['headers' => ['Authorization' => "Bearer " . $token->access_token]];
+
+        $res = $this->client->get($uri, $params);
+        $grupos = json_decode($res->getBody());
+
+        return $grupos;
+    }
+
+    public function getRoleInRealmbyName($realm, $roleName) {
+        $token = $this->getTokenAdmin();
+        $auth_url = $this->parameterBag->get('keycloak-server-url');
+        $uri = $auth_url . "/admin/realms/{realm}/roles/{role-name}";
+        $uri = str_replace("{realm}", $realm, $uri);
+        $uri = str_replace("{role-name}", $roleName, $uri);
+        $params = ['headers' => ['Authorization' => "Bearer " . $token->access_token]];
+
+        try {
+            $res = $this->client->get($uri, $params);
+            $role = json_decode($res->getBody());
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return $role;
+    }
+
+    public function createRoleInRealm($realm, $roleName, $roleCode){
+        $token = $this->getTokenAdmin();
+        $auth_url = $this->parameterBag->get('keycloak-server-url');
+        $uri = $auth_url . "/admin/realms/{realm}/roles";                                         
+        $uri = str_replace("{realm}", $realm, $uri);
+        
+        $params = [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $token->access_token,
+            ],
+            'debug' => true,
+            'json' => [
+                'name' => $roleName,
+                'description' => 'Super Administrador del sistema',
+                'attributes' => $roleCode,
+                'enabled' => true,
+                'credentials' => [
+                    0 => [
+                        'type' => 'password',
+                        'value' => $password,
+                        'temporary' => $temporary,
+                    ],
+                ],
+            ],
+        ];
+
+        $res = $this->client->put($uri, $params);
+
+        $data = json_decode($res->getStatusCode());
+        return new JsonResponse($data);
+    }
 }
