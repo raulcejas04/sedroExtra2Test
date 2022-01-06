@@ -116,7 +116,7 @@ class AuxSrv extends AbstractController
     }
  */
 
-    public function createDispositivoAndUserDispositivo($solicitud,$nivel = UsuarioDispositivo::NIVEL_1)
+    public function createDispositivoAndUserDispositivo($solicitud, $nivel = UsuarioDispositivo::NIVEL_1)
     {
         $dispositivo = new Dispositivo();
         $dispositivo->setNicname($solicitud->getNicname());
@@ -126,6 +126,7 @@ class AuxSrv extends AbstractController
         $usuarioDispositivo->setUsuario($solicitud->getUsuario());
         $usuarioDispositivo->setDispositivo($dispositivo);
         $usuarioDispositivo->setFechaAlta(new DateTime());
+        //TODO: Parametrizar nivel
         $usuarioDispositivo->setNivel($nivel);
         $dispositivo->addUsuarioDispositivo($usuarioDispositivo);
         $dispositivo->setPersonaJuridica($solicitud->getPersonaJuridica());
@@ -135,7 +136,7 @@ class AuxSrv extends AbstractController
         return $solicitud;
     }
 
-    public function createUsuarioDispositivo($dispositivo, $usuario,$nivel = UsuarioDispositivo::NIVEL_1)
+    public function createUsuarioDispositivo($dispositivo, $usuario, $nivel = UsuarioDispositivo::NIVEL_1)
     {
         $em = $this->getDoctrine()->getManager();
         $usuarioDispositivo = new UsuarioDispositivo();
@@ -153,11 +154,11 @@ class AuxSrv extends AbstractController
         //TODO: Verificar que el email se haya enviado sin errores
         //TODO: ¿Crear una funcion privada para enviar emails en este controller?
         //public para que el firewall lo deje pasar
-        $url = $this->getParameter('extranet_url') . '/public/' . $solicitud->getHash() . '/completar-datos';
+        $url = $this->generateUrl('solicitud-paso-2', ["hash" => $solicitud->getHash()], UrlGeneratorInterface::ABSOLUTE_URL);
         $email = (new TemplatedEmail())
             ->from($this->getParameter('direccion_email_salida'))
             ->to($solicitud->getMail())
-            ->subject('Invitación para dar de alta usuario y dispositivo nuevo')
+            ->subject('Invitación a dispositivo')
             ->htmlTemplate('emails/invitacionPasoUno.html.twig')
             ->context([
                 'nicname' => $solicitud->getNicname(),
@@ -165,7 +166,6 @@ class AuxSrv extends AbstractController
             ]);
 
         $this->mailer->send($email);
-
         $this->addFlash('success', 'Se ha enviado un email a ' . $solicitud->getMail() . ' con instrucciones para completar el registro.');
     }
 }

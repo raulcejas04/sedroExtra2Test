@@ -25,6 +25,7 @@ Encore
     './node_modules/bootstrap/dist/js/bootstrap.bundle.min.js']
     )
     .addEntry('validarFormularios', './assets/validator.js')
+    .addEntry('paso1', './assets/js/paso1.js')
     .addEntry('pasoDos', './assets/pasoDos.js')
     .addEntry('modales', './assets/modales.js')
     // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)

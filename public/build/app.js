@@ -268,7 +268,7 @@ __webpack_require__.r(__webpack_exports__);
 },
 /******/ __webpack_require__ => { // webpackRuntimeModules
 /******/ var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-/******/ __webpack_require__.O(0, ["vendors-node_modules_jquery_dist_jquery_js","vendors-node_modules_core-js_internals_export_js-node_modules_core-js_internals_is-array_js-n-e836c4","vendors-node_modules_symfony_stimulus-bridge_dist_index_js-node_modules_bootstrap_dist_js_boo-91657a"], () => (__webpack_exec__("./assets/app.js"), __webpack_exec__("./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js")));
+/******/ __webpack_require__.O(0, ["vendors-node_modules_jquery_dist_jquery_js","vendors-node_modules_core-js_internals_classof_js-node_modules_core-js_internals_export_js-no-bdd77e","vendors-node_modules_symfony_stimulus-bridge_dist_index_js-node_modules_bootstrap_dist_js_boo-91657a"], () => (__webpack_exec__("./assets/app.js"), __webpack_exec__("./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js")));
 /******/ var __webpack_exports__ = __webpack_require__.O();
 /******/ }
 ]);

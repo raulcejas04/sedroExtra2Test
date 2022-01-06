@@ -47,4 +47,48 @@ class SolicitudRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function findSolicitudes($realm)
+    {
+        return $this->createQueryBuilder('s')
+            ->join('s.dispositivo', 'd')
+            ->join('d.usuarioDispositivos', 'ud')
+            ->join('ud.usuario','u')
+            ->andWhere('s.realm = :realm')
+            ->andWhere('u.id = s.origen AND ud.nivel IN(1,2)')//Parametrizar nivel
+            ->andWhere('s.fechaEliminacion IS NULL')
+            ->setParameter('realm', $realm)
+            ->orderBy('s.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findSolicitudActiva($mail, $nicname, $cuit, $cuil)
+    {
+        $hoy = new \DateTime();
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.mail = :mail')
+            ->andWhere('s.nicname = :nicname')
+            ->andWhere('s.cuit = :cuit')
+            ->andWhere('s.cuil = :cuil')
+            ->andWhere('s.fechaExpiracion < :hoy')
+            ->andWhere('s.fechaAlta IS NULL')
+            ->andWhere('s.correccion IS NULL')
+            ->andWhere('s.usada IS NULL')
+            ->setParameter('mail', $mail)
+            ->setParameter('nicname', $nicname)
+            ->setParameter('cuit', $cuit)
+            ->setParameter('cuil', $cuil)
+            ->setParameter('hoy', $hoy->format('Y-m-d H:i:s'))
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        /*         return $this->createQueryBuilder('pf')
+            ->leftJoin('pf.representaciones', 'r')
+            ->leftJoin('r.personaJuridica', 'pj')
+            ->leftJoin('pj.dispositivos', 'd')
+            ->leftJoin('pj.solicitudes', 's')
+            ->getQuery()
+            ->getResult(); */
+    }
 }

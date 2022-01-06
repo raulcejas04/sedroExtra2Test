@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nueva Solicitud{% endblock %}
+
+{% block body %}
+    <h1 class="text-center">Nueva Solicitud</h1>
+    <div class="row justify-content-md-center">
+        <div class="col-6">
+            {{ form_start(form)}}
+            {{form_row(form.dispositivo)}}
+            {{ form_row(form.cuil,
+      		            { 'attr': { 'data-get_persona_fisica_x_cuil': path('get_persona_fisica_x_cuil') } }
+            		) 
+            }}
+            {{ form_row(form.denominacion) }}
+            {{ form_row(form.mail.first) }}
+            {{ form_row(form.mail.second) }}
+            {{ form_rest(form)}}
+            <br>
+            <div class="text-center">
+                <div class="center-block">
+                    <button type="submit" class="btn btn-primary">Enviar</button>
+                </div>
+            </div>
+            {{ form_end(form)}}
+        </div>
+    </div>
+       <br>
+    <br>
+    <br>
+    <a href="{{ path('dashboard') }}" class="btn btn-lg btn-success">Volver</a>
+    <br>
+    <br>
+    <br>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>  
+<script type="text/javascript">
+</script>
+{{ encore_entry_script_tags('paso1') }} <!--esta en assets/js-->
+{% endblock %}

@@ -39,13 +39,15 @@ class ValidarSolicitudSrv extends AbstractController
     // public function validarSolicitud($personaFisica, $personaJuridica, $dispositivo, $usuario, $usuarioDispositivo, $ambiente = 'Intranet', $paso = '1')
     public function validarSolicitud($solicitud, $ambiente = 'Intranet', $paso = '1')
     {
-        $realm = $this->getDoctrine()->getRepository(Realm::class)->findOneBy(['realm' => $this->getParameter('keycloak_realm')]);
+        $extranetRealm = $this->getDoctrine()->getRepository(Realm::class)->findOneBy(['realm' => $this->getParameter('keycloak_realm')]);
+        $intranetRealm = $this->getDoctrine()->getRepository(Realm::class)->findOneBy(['realm' => $this->getParameter('keycloak_intranet_realm')]);
+
         $personaFisica = $this->em->getRepository('App:PersonaFisica')->findOneBy(['cuitCuil' => $solicitud->getCuil()]);
         $personaJuridica = $this->em->getRepository('App:PersonaJuridica')->findOneBy(['cuit' => $solicitud->getCuit()]);
         $dispositivo =  $this->em->getRepository('App:Dispositivo')->findOneBy(['nicname' => $solicitud->getNicname(), 'personaJuridica' => $personaJuridica]);  //TODO:A futuro otro parametro para dispositivo va a ser Localidad
         //TODO:Filtrar su correo tambien. El error actual es que si existe otro user con el mismo correo en el mismo realm, tira error en KC.
         //Se podría arreglar validando antes el email de la solicitud.
-        $usuario =  $this->em->getRepository('App:User')->findOneBy(['username' => $solicitud->getCuil(), 'realm' => $realm]);
+        $usuario =  $this->em->getRepository('App:User')->findOneBy(['username' => $solicitud->getCuil(), 'realm' => $extranetRealm]);
         $usuarioDispositivo = $this->em->getRepository('App:UsuarioDispositivo')->findOneBy(["usuario" => $usuario, "dispositivo" => $dispositivo]);
 
         // dd($personaFisica,$personaJuridica,$dispositivo,$usuario,$usuarioDispositivo);
@@ -58,6 +60,8 @@ class ValidarSolicitudSrv extends AbstractController
         //El debugMode habilita los flash para saber a que escenario entró el validador.
         //Poner en false en producción.
         $debugMode = true;
+
+        //TODO: validar antes de cada switch si está activa o no la solicitud
 
         /**
          * escenario 1:
@@ -108,31 +112,39 @@ class ValidarSolicitudSrv extends AbstractController
                 case 'Extranet':
                     switch ($paso) {
                         case '1':
-                            $message = 'Sin permisos suficientes para iniciar una solicitud';
-                            $flagOk = false;
-                            $redirectForError = true;
-                            $data = null;
-                            $solicitud = null;
-                            break;
-                        case '2':
-                            $flashOk = true;
+                            $hash = md5(uniqid(rand(), true));
+                            $solicitud->setHash($hash);
+                            $solicitud->setRealm($extranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
+                            $solicitud->setPersonaFisica($personaFisica);
+                            $solicitud->setPersonaJuridica($personaJuridica);
+                            $solicitud->setUsuario($usuario);
+                            //TODO:Modificar template de email paso 1 - texto
+                            $this->auxSrv->EnviarCorreoInvitacion($solicitud);
+                            $flagOk = true;
                             $redirectForError = false;
-                            $data = [
-                                'personaFisica' => $personaFisica,
-                                'personaJuridica' => $personaJuridica,
-                                'dispositivo' => $dispositivo,
-                                'usuario' => $usuario,
-                                'usuarioDispositivo' => $usuarioDispositivo,
-                                'ambiente' => $ambiente,
-                                'paso' => $paso,
-                            ];
+                            $data = null;
+                            $message = 'Invitación generada correctamente.';
+                        case '2':
+                            $solicitud->setDispositivo($dispositivo);
+                            $solicitud->setPersonaFisica($personaFisica);
+                            $solicitud->setPersonaJuridica($personaJuridica);
+                            $solicitud->setUsuario($usuario);
+                            $solicitud->setFechaUso(new \DateTime('now'));
+                            $solicitud->setUsada(true);
+                            $message = 'Datos completados con Exito.';
+                            $flagOk = true;
+                            $redirectForError = false;
+                            $data = null;
                             break;
                         case '3':
-                            $message = 'Sin permisos suficientes para aceptar o rechazar una solicitud';
-                            $flagOk = false;
-                            $redirectForError = true;
+                            $this->auxSrv->createUsuarioDispositivo($dispositivo, $usuario);
+                            $solicitud->setFechaAlta(new DateTime());
+                            $message = 'El usuario, la persona física, la persona jurídica y el dispositivo existían con anterioridad.';
+                            $message .= 'Se ha vinculado el usuario ' . $usuario->getPersonaFisica()->getNombres() . ' ' . $usuario->getPersonaFisica()->getApellido() . '(' . $usuario->getUsername() . ')' . ' a ' . $dispositivo->getNicname();
+                            $flagOk = true;
+                            $redirectForError = false;
                             $data = null;
-                            $solicitud = null;
                             break;
                     }
 
@@ -142,17 +154,12 @@ class ValidarSolicitudSrv extends AbstractController
                     switch ($paso) {
                         case '1':
                         case '2':
+                        case '3':
                             $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
                             $solicitud = null;
-                            break;
-                        case '3':
-                            //TODO: Paso 3 deberia ir en extra. lo dejo acá hasta refactorizar la extra
-                            $this->auxSrv->createUsuarioDispositivo($dispositivo, $usuario);
-                            $message = 'El usuario, la persona física, la persona jurídica y el dispositivo existían con anterioridad.';
-                            $message .= 'Se ha vinculado el usuario ' . $usuario->getPersonaFisica()->getNombres() . ' ' . $usuario->getPersonaFisica()->getApellido() . '(' . $usuario->getUsername() . ')' . ' a ' . $dispositivo->getNicname();
                             break;
                     }
 
@@ -379,6 +386,8 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                             $hash = md5(uniqid(rand(), true));
                             $solicitud->setHash($hash);
+                            $solicitud->setRealm($intranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
                             $solicitud->setPersonaFisica($personaFisica);
                             $solicitud->setPersonaJuridica($personaJuridica);
                             $solicitud->setUsuario($usuario);
@@ -480,6 +489,8 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                             $hash = md5(uniqid(rand(), true));
                             $solicitud->setHash($hash);
+                            $solicitud->setRealm($intranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
                             $solicitud->setPersonaFisica($personaFisica);
                             $solicitud->setPersonaJuridica($personaJuridica);
                             $this->auxSrv->EnviarCorreoInvitacion($solicitud);
@@ -646,6 +657,8 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                             $hash = md5(uniqid(rand(), true));
                             $solicitud->setHash($hash);
+                            $solicitud->setRealm($intranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
                             $solicitud->setPersonaFisica($personaFisica);
                             $solicitud->setUsuario($usuario);
                             $this->auxSrv->EnviarCorreoInvitacion($solicitud);
@@ -741,6 +754,8 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                             $hash = md5(uniqid(rand(), true));
                             $solicitud->setHash($hash);
+                            $solicitud->setRealm($intranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
                             $solicitud->setPersonaFisica($personaFisica);
                             $this->auxSrv->EnviarCorreoInvitacion($solicitud);
                             $flagOk = true;
@@ -789,6 +804,7 @@ class ValidarSolicitudSrv extends AbstractController
         }
 
         /**
+         * //TODO: Posiblemente no es inconsistencia
          * escenario 18: INCONSISTENCIA
          * Paso 1:
          * Paso 2: 
@@ -939,6 +955,8 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                             $hash = md5(uniqid(rand(), true));
                             $solicitud->setHash($hash);
+                            $solicitud->setRealm($intranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
                             $solicitud->setPersonaJuridica($personaJuridica);
                             $this->auxSrv->EnviarCorreoInvitacion($solicitud);
                             $flagOk = true;
@@ -1136,6 +1154,8 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                             $hash = md5(uniqid(rand(), true));
                             $solicitud->setHash($hash);
+                            $solicitud->setRealm($intranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
                             $this->auxSrv->EnviarCorreoInvitacion($solicitud);
                             $flagOk = true;
                             $redirectForError = false;

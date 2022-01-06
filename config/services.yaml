@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     keycloak_realm:               '%env(KEYCLOAK_REALM)%'
+    keycloak_intranet_realm:      '%env(KEYCLOAK_INTRANET_REALM)%'
     keycloak_secret:              '%env(KEYCLOAK_SECRET)%'
     keycloak_clientid:            '%env(KEYCLOAK_CLIENTID)%'
     keycloak_url:                 '%env(KEYCLOAK_APP_URL)%'

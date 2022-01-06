@@ -11,9 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Solicitud
 {
-    CONST PASO_UNO = '1';
-    CONST PASO_DOS = '2';
-    CONST PASO_TRES ='3';
+    const PASO_UNO = '1';
+    const PASO_DOS = '2';
+    const PASO_TRES = '3';
 
     //TODO: observacion y observacionRechazo es lo mismo??
     /**
@@ -119,13 +119,18 @@ class Solicitud
     private $observacionRechazo;
 
     /**
+     * @ORM\ManyToOne(targetEntity=User::class)
+     */
+    private $origen;
+
+    /**
      * @ORM\PrePersist
      */
     public function setPrePersistValues(): void
     {
         $creacion = new \DateTimeImmutable();
         $fechaExpiracion = $creacion->modify('+7 days');
-        
+
         $this->creacion = $creacion;
         $this->usada = false;
         $this->fechaExpiracion = $fechaExpiracion;
@@ -364,4 +369,15 @@ class Solicitud
         return $this;
     }
 
+    public function getOrigen()
+    {
+        return $this->origen;
+    }
+
+    public function setOrigen(User $origen): self
+    {
+        $this->origen = $origen;
+
+        return $this;
+    }
 }

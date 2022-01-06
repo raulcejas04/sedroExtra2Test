@@ -28,7 +28,6 @@ class InvitacionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-
             ->add('dispositivo', EntityType::class, [
                 'class' => 'App:Dispositivo',
                 'placeholder' => '-- Seleccionar Dispositivo --',
@@ -39,6 +38,7 @@ class InvitacionType extends AbstractType
                         ->join('d.usuarioDispositivos', 'ud')
                         ->join('ud.usuario', 'u')
                         ->where('u.id = :user')
+                        //TODO: Parametrizar nivel
                         ->andWhere('ud.nivel IN(1,2)')
                         ->setParameter('user', $this->token->getToken()->getUser()->getId())
                         ->orderBy('d.nicname', 'ASC');
@@ -49,8 +49,8 @@ class InvitacionType extends AbstractType
                 'attr' => ['class' => 'form-control']
             ])
 
-            ->add('personaFisica', PersonaFisicaCollectionType::class)
-            ->add('email', RepeatedType::class, [
+            //->add('personaFisica', PersonaFisicaCollectionType::class)
+            ->add('mail', RepeatedType::class, [
                 'type' => EmailType::class,
                 'options' => [
                     'attr' => [

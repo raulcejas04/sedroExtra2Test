@@ -1,15 +1,15 @@
-  {{form_start(formReenviarCorreo,{'action':path('solicitud_reenviarEmail',{'hash':solicitud.hash})})}}
-                    <div class="modal fade" id="reenviarEmailModal" tabindex="-1" aria-labelledby="reenviarEmailModalLabel" aria-hidden="true">
+  {{form_start(formRechazarSolicitud,{'action':path('solicitud_rechazar',{'hash':solicitud.hash})})}}
+                    <div class="modal fade" id="rechazarSolicitudModal" tabindex="-1" aria-labelledby="rechazarSolicitudModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Reenviar Email</h5>
+                            <h5 class="modal-title" id="exampleModalLabel">Rechazar Solicitud</h5>
                            {#  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> #}
                         </div>
                         <div class="modal-body">
-                                {{form_label(formReenviarCorreo.mail)}}
-                                {{form_widget(formReenviarCorreo.mail)}}
-                                {{form_errors(formReenviarCorreo.mail)}}
+                                {{form_label(formRechazarSolicitud.observacionRechazo)}}
+                                {{form_widget(formRechazarSolicitud.observacionRechazo)}}
+                                {{form_errors(formRechazarSolicitud.observacionRechazo)}}
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="modal-close btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -18,4 +18,4 @@
                         </div>
                     </div>
                     </div>
-{{form_end(formReenviarCorreo)}}
+{{form_end(formRechazarSolicitud)}}
