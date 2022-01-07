@@ -1,9 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Verificar Solicitudes{% endblock %}
+{% block title %}Verificar Invitaciones{% endblock %}
 
 {% block body %}
-    <h2 class="text-center">Solicitudes</h2>
+    <h2 class="text-center">Invitaciones</h2>
     <div class="row justify-content-md-center">
     
         <div class="col-10">
@@ -94,6 +94,9 @@
                                 
                                 {% if solicitud.fechaUso == null %}
                                     <span class="badge rounded-pill bg-info">Esperando datos</span>
+                                {% endif %}
+                                  {% if solicitud.fechaUso != null and solicitud.fechaAlta == null %}
+                                    <span class="badge rounded-pill bg-info">Esperando resolución</span>
                                 {% endif %}
                             </td>
                         </tr>

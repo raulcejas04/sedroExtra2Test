@@ -41,7 +41,7 @@ class NuevaSolicitudType extends AbstractType
                         ->join('ud.usuario', 'u')
                         ->where('u.id = :user')
                         //TODO: Parametrizar nivel
-                        ->andWhere('ud.nivel IN(1,2)')
+                        ->andWhere('ud.nivel IN(1)')
                         ->setParameter('user', $this->token->getToken()->getUser()->getId())
                         ->orderBy('d.nicname', 'ASC');
                 },

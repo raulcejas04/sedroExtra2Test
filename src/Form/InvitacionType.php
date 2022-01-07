@@ -49,8 +49,8 @@ class InvitacionType extends AbstractType
                 'attr' => ['class' => 'form-control']
             ])
 
-            //->add('personaFisica', PersonaFisicaCollectionType::class)
-            ->add('mail', RepeatedType::class, [
+            ->add('personaFisica', PersonaFisicaCollectionType::class)
+            ->add('email', RepeatedType::class, [
                 'type' => EmailType::class,
                 'options' => [
                     'attr' => [

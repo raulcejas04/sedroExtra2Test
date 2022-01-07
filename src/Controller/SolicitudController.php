@@ -22,6 +22,7 @@ use DateTime;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class SolicitudController extends AbstractController
 {
@@ -55,7 +56,7 @@ class SolicitudController extends AbstractController
 
             $solicitud = $validacion["solicitud"];
             $entityManager->persist($solicitud);
-            $entityManager->flush();          
+            $entityManager->flush();
             $this->addFlash('success', $validacion["message"]);
             return $this->redirectToRoute('dashboard');
         }
@@ -65,15 +66,15 @@ class SolicitudController extends AbstractController
         ]);
     }
 
-     /**
+    /**
      * @Route("dashboard/solicitudes", name="solicitudes")
      */
     public function solicitudes(): Response
     {
         $entityManager = $this->getDoctrine()->getManager();
 
-        $realm = $entityManager->getRepository(Realm::class)->findOneBy(['realm'=>$this->getParameter('keycloak_realm')]);
-        $solicitudes = $entityManager->getRepository(Solicitud::class)->findSolicitudes($realm);
+        $realm = $entityManager->getRepository(Realm::class)->findOneBy(['realm' => $this->getParameter('keycloak_realm')]);
+        $solicitudes = $entityManager->getRepository(Solicitud::class)->findSolicitudes($realm,$this->getUser());
         $response = $this->renderView('solicitud\solicitudes.html.twig', [
             'solicitudes' => $solicitudes
         ]);
@@ -133,7 +134,7 @@ class SolicitudController extends AbstractController
             }
             $solicitud = $validacion["solicitud"];
             $entityManager->persist($solicitud);
-            $entityManager->flush();          
+            $entityManager->flush();
             $this->addFlash('success', $validacion["message"]);
 
             //TODO: Que el redirectToRoute vaya al home cuando el mismo esté listo
@@ -148,13 +149,19 @@ class SolicitudController extends AbstractController
         ]);
     }
 
-      /**
+    /**
      * @Route("dashboard/solicitud/{hash}/aceptar-solicitud", name="aceptarSolicitud")
      */
     public function aceptarSolicitud($hash): Response
     {
         $entityManager = $this->getDoctrine()->getManager();
         $solicitud = $entityManager->getRepository('App\Entity\Solicitud')->findOneByHash($hash);
+
+        if (!$solicitud->getFechaUso()) {
+            $this->addFlash('danger', 'Debe esperar a que el invitado complete los datos para aceptar la solicitud.');
+            return $this->redirectToRoute('dashboard');
+        }
+
         $validacion = $this->validador->validarSolicitud($solicitud, $this->getParameter('keycloak_realm'), Solicitud::PASO_TRES);
         if (!$validacion["flagOk"]) {
             $this->addFlash('danger', $validacion["message"]);
@@ -193,7 +200,7 @@ class SolicitudController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $url = $this->getParameter('extranet_url') . '/public/' . $solicitud->getHash() . '/completar-datos';
+            $url = $this->generateUrl('solicitud-paso-2', ["hash" => $solicitud->getHash()], UrlGeneratorInterface::ABSOLUTE_URL);
             $email = (new TemplatedEmail())
                 ->from($this->getParameter('direccion_email_salida'))
                 ->to($solicitud->getMail())
@@ -248,7 +255,7 @@ class SolicitudController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $solicitud->setAceptada(false);
-
+            $solicitud->setCorrecion(false);
             $email = (new TemplatedEmail())
                 ->from($this->getParameter('direccion_email_salida'))
                 ->to($solicitud->getMail())
@@ -290,5 +297,4 @@ class SolicitudController extends AbstractController
             return false;
         }
     }
-
 }

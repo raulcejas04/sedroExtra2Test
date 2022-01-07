@@ -28,14 +28,16 @@ class AuxSrv extends AbstractController
     private $parameterBag;
     private $mailer;
     private $router;
+    private $intraSrv;
 
-    public function __construct(ParameterBagInterface $parameterBag, KeycloakApiSrv $keycloak, MailerInterface $mailer, RouterInterface $router)
+    public function __construct(ParameterBagInterface $parameterBag, KeycloakApiSrv $keycloak, MailerInterface $mailer, RouterInterface $router, IntranetService $intraSrv)
     {
         $this->client = new GuzzleHttp\Client();
         $this->parameterBag = $parameterBag;
         $this->kc = $keycloak;
         $this->mailer = $mailer;
         $this->router = $router;
+        $this->intraSrv = $intraSrv;
     }
 
     /**
@@ -43,22 +45,16 @@ class AuxSrv extends AbstractController
      */
     public function createKeycloakcAndDatabaseUser($personaFisica, $solicitud, $realm)
     {
+        //TODO:Cuando este definido el tipo dispositivo, meter el user en un grupo.
         $entityManager = $this->getDoctrine()->getManager();
         $password = substr(md5(uniqid(rand(1, 100))), 1, 6);
         $realmDB = $entityManager
             ->getRepository(Realm::class)
             ->findOneBy(['realm' => $realm]);
-        $this->kc->postUsuario(
-            $personaFisica->getCuitCuil(), //username
-            $solicitud->getMail(), //email
-            $personaFisica->getNombres(), //firstName
-            $personaFisica->getApellido(), //lastName
-            $password, //password
-            true, //Temporally
-            $realm //realm
-        );
 
-        $usuarioKC = $this->kc->getUserByUsernameAndRealm($personaFisica->getCuitCuil(), $realm);
+        $this->intraSrv->postUser($personaFisica->getCuitCuil(), $password, $solicitud->getMail(), $personaFisica->getNombres(), $personaFisica->getApellido());
+        $usuarioKC = $this->intraSrv->getUserByUsername($personaFisica->getCuitCuil());
+        //$usuarioKC = $this->kc->getUserByUsernameAndRealm($personaFisica->getCuitCuil(), $realm);
 
         $usuarioDB = new User();
         $usuarioDB->setUsername($personaFisica->getCuitCuil());
@@ -95,6 +91,9 @@ class AuxSrv extends AbstractController
             'usuarioKC' => $usuarioKC,
             'usuarioDB' => $usuarioDB,
         ];
+
+        $this->addFlash('success', 'Se ha enviado un email a ' . $solicitud->getMail() . ' con los datos de acceso.');
+
         return $data;
     }
 

@@ -48,17 +48,18 @@ class SolicitudRepository extends ServiceEntityRepository
     }
     */
 
-    public function findSolicitudes($realm)
+    public function findSolicitudes($realm, $user)
     {
         return $this->createQueryBuilder('s')
             ->join('s.dispositivo', 'd')
             ->join('d.usuarioDispositivos', 'ud')
-            ->join('ud.usuario','u')
+            ->join('ud.usuario', 'u')
             ->andWhere('s.realm = :realm')
-            ->andWhere('u.id = s.origen AND ud.nivel IN(1,2)')//Parametrizar nivel
+            ->andWhere('s.origen = :user')
+            //->andWhere('u.id = :user AND ud.nivel IN(1,2)') //Parametrizar nivel
             ->andWhere('s.fechaEliminacion IS NULL')
-            ->setParameter('realm', $realm)
-            ->orderBy('s.id', 'ASC')
+            ->setParameters(['realm' => $realm, 'user' => $user])
+            ->orderBy('s.creacion', 'DESC')
             ->getQuery()
             ->getResult();
     }

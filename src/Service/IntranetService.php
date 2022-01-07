@@ -24,7 +24,7 @@ class IntranetService
     public function postUser($username, $password, $email, $firstname, $lastname)
     {
         $base_uri = $this->parameterBag->get('intranet_app_url');
-        $uri = $base_uri . '/api/add/user';
+        $uri = $base_uri . '/public/api/add/user';
         $params = [
             'json' => [
                 'username' => $username,
@@ -43,7 +43,7 @@ class IntranetService
     public function postUserGroup($user, $groups)
     {
         $base_uri = $this->parameterBag->get('intranet_app_url');
-        $uri = $base_uri . '/api/add/group/user';
+        $uri = $base_uri . '/public/api/add/group/user';
         $params = [
             'json' => [
                 'username' => $user->getUsername(),
@@ -59,7 +59,7 @@ class IntranetService
     public function getUserByUsername($username)
     {
         $base_uri = $this->parameterBag->get('intranet_app_url');
-        $uri = $base_uri . '/api/get/user/username';
+        $uri = $base_uri . '/public/api/get/user/username';
         $params = [
             'json' => [
                 'username' => $username,
@@ -74,7 +74,7 @@ class IntranetService
     public function getUserByEmail($email)
     {
         $base_uri = $this->parameterBag->get('intranet_app_url');
-        $uri = $base_uri . '/api/get/user/email';
+        $uri = $base_uri . '/public/api/get/user/email';
         $params = [
             'json' => [
                 'email' => $email,
@@ -89,7 +89,7 @@ class IntranetService
     public function getGroup($groupName)
     {
         $base_uri = $this->parameterBag->get('intranet_app_url');
-        $uri = $base_uri . '/api/get/group';
+        $uri = $base_uri . '/public/api/get/group';
         $params = [
             'json' => [
                 'group' => $groupName,
@@ -104,7 +104,7 @@ class IntranetService
     public function getRole($roleName)
     {
         $base_uri = $this->parameterBag->get('intranet_app_url');
-        $uri = $base_uri . '/api/get/role';
+        $uri = $base_uri . '/public/api/get/role';
         $params = [
             'json' => [
                 'role' => $roleName,

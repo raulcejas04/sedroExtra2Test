@@ -1,0 +1,521 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+  Pruebas en extranet
+{% endblock %}
+
+{% block body %}
+  <div class="example-wrapper">
+    <h2>
+      Escenarios
+    </h2>
+
+    <div class="row">
+      <h3>
+        Keycloak
+      </h3>
+      <p>
+        Persona fisica/juridica tiene clave unica cuit/cuil
+      </p>
+      <p>
+        Usuario tiene username+realm como clave única (username=cuit/cuil)
+      </p>
+      <p>
+        Que exista el usuario implica que esta en la base y en keycloak
+      </p>
+      <p>
+        No tiene que pasar que exista un dispositivo y no exista al menos un
+        usuario root o master del dispositivo
+      </p>
+      <p>
+        Caundo en la tabla de dispositivo hay un NO tiene que empezar desde la
+        intranet
+      </p>
+      <p>
+        Cuando en la tabla de dispositivo hay un SI quiere decir que hay un
+        usuario root y que empieza desde la extranet
+      </p>
+      <p>
+        Inicio del trámite
+      </p>
+      <p>
+        La solicitud tiene que expirar con una fecha_expiracion (cantidad de
+        dias, tabla parametros)
+      </p>
+      <p></p>
+      <p>
+        Usuario
+      </p>
+      <p>
+        Usuario_dispositivo
+      </p>
+      <p>
+        filas en rojo
+      </p>
+    </div>
+
+    <table class="table table-hover table-bordered">
+      <thead>
+        <tr class="align-middle text-center">
+          <td scope="col">Escenario</td>
+          <td scope="col">Persona física</td>
+          <td scope="col">Persona Juridica</td>
+          <td scope="col">Dispositivo</td>
+          <td scope="col">Usuario</td>
+          <td scope="col">Usuario_dispositivo</td>
+          <td scope="col">Paso 1 (Invitación)</td>
+          <td scope="col">Paso 2 (carga de datos)</td>
+          <td scope="col">Paso 3 (Aprobación / Rechazo)</td>
+          <td scope="col">Inicia desde intranet / extranet</td>
+          <td scope="col">Observaciones</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="align-middle text-center">
+            <td><b>Escenario 1</b></td>
+            <td>SI</td>
+            <td>SI</td>
+            <td>SI</td>
+            <td>SI</td>
+            <td>SI</td>
+            <td>Error no deja seguir si está vigente</td>
+            <td></td>
+            <td></td>
+            <td>Extranet</td>
+            <td>Error si no expiró</td>
+        </tr>
+  
+        <tr class="align-middle text-center">
+          <td><b>Escenario 2</b></td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>traer los datos</td>
+          <td>traer los datos</td>
+          <td>alta usuario_dispositivo</td>
+          <td>Extranet</td>
+          <td>trabaja en otro dispositivo</td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 3</b></td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>Sino existe el usuario, usu_disp no existe</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="align-middle text-center">
+          <td><b>Escenario 4</b></td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>traer datos</td>
+          <td>traer datos</td>
+          <td>alta usuario</td>
+          <td>Extranet</td>
+          <td>Paciente</td>
+        </tr>
+        <tr class="align-middle text-center">
+          <td><b>Escenario 5</b></td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>traer datos</td>
+          <td>traer datos</td>
+          <td>alta dispositivo</td>
+          <td>Intranet</td>
+          <td>El usuario existe en otro dispositivo</td>
+        </tr>
+
+        <tr class="align-middle text-center">
+          <td><b>Escenario 6</b></td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td> NO</td>
+          <td>traer datos</td>
+          <td>traer datos</td>
+          <td>alta dispositivo y usuario_dispositivo</td>
+          <td>Intranet</td>
+          <td>El usuario existe en otro dispositivo y se da de alta en undispositivo nuevo</td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 7</b></td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="align-middle text-center">
+          <td><b>Escenario 8</b></td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>traer datos</td>
+          <td>traer datos</td>
+          <td>alta dispositivo, alta usuario</td>
+          <td>Intranet</td>
+          <td>Paciente en un dispositivo nuevo</td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 9</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 10</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 11</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 12</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 13</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="align-middle text-center">
+          <td><b>Escenario 14</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>traer datos</td>
+          <td>traer datos</td>
+          <td>alta persona jurídica, dispositivo, usuario dispositivo</td>
+          <td>Intranet</td>
+          <td>trabaja en otro dispositivo de otra razón social</td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 15</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="align-middle text-center">
+          <td><b>Escenario 16</b></td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>traer datos</td>
+          <td>traer datos</td>
+          <td>alta persona jur, dispositivo, usuario, usuario_dispositivo</td>
+          <td>Intranet</td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 17</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 18</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 19</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 20</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 21</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 22</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 23</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="align-middle text-center">
+          <td><b>Escenario 24</b></td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>traer datos persona jurídica</td>
+          <td>traer datos</td>
+          <td>alta persona fisica, dispositivo, usuario, usuario_dispositivo</td>
+          <td>intranet</td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 25</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 26</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 27</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>SI</td>          
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 28</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 29</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 30</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td>NO</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="table-danger align-middle text-center">
+          <td><b>Escenario 31</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>SI</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr class="align-middle text-center">
+          <td><b>Escenario 32</b></td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>NO</td>
+          <td>Es el escenario que funciona</td>
+          <td></td>
+          <td></td>
+          <td>intranet</td>
+          <td></td>
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

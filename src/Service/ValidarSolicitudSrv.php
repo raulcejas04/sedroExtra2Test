@@ -138,7 +138,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $data = null;
                             break;
                         case '3':
-                            $this->auxSrv->createUsuarioDispositivo($dispositivo, $usuario);
+                            $this->auxSrv->createUsuarioDispositivo($dispositivo, $usuario,UsuarioDispositivo::NIVEL_2);
                             $solicitud->setFechaAlta(new DateTime());
                             $message = 'El usuario, la persona física, la persona jurídica y el dispositivo existían con anterioridad.';
                             $message .= 'Se ha vinculado el usuario ' . $usuario->getPersonaFisica()->getNombres() . ' ' . $usuario->getPersonaFisica()->getApellido() . '(' . $usuario->getUsername() . ')' . ' a ' . $dispositivo->getNicname();
@@ -201,38 +201,38 @@ class ValidarSolicitudSrv extends AbstractController
                 case 'Extranet':
                     switch ($paso) {
                         case '1':
-                            $message = 'Sin permisos suficientes para iniciar una solicitud';
-                            $flagOk = false;
-                            $redirectForError = true;
+                            $hash = md5(uniqid(rand(), true));
+                            $solicitud->setHash($hash);
+                            $solicitud->setRealm($extranetRealm);
+                            $solicitud->setOrigen($this->getUser()); // Usuario que inicio la solicitud
+                            $solicitud->setPersonaFisica($personaFisica);
+                            $solicitud->setPersonaJuridica($personaJuridica);
+                            $solicitud->setUsuario($usuario);
+                            //TODO:Modificar template de email paso 1 - texto
+                            $this->auxSrv->EnviarCorreoInvitacion($solicitud);
+                            $flagOk = true;
+                            $redirectForError = false;
                             $data = null;
-                            $solicitud = null;
-                            break;
-
+                            $message = 'Invitación generada correctamente.';
                         case '2':
-                            $datos = [
-                                'personaFisica' => $personaFisica,
-                                'personaJuridica' => $personaJuridica,
-                                'dispositivo' => $dispositivo,
-                                'usuario' => null,
-                                'usuarioDispositivo' => null,
-                                'ambiente' => $ambiente,
-                                'paso' => $paso,
-                            ];
-                            //$flagOk = false;
-                            //$redirectForError = true;
-                            //$data = null;
-                            //$solicitud = null;
-
-                            //return $datos;
-                            break;
-
-                        case '3':
-                            $message = 'Sin permisos suficientes para aceptar o rechazar una solicitud';
-                            $flagOk = false;
-                            $redirectForError = true;
+                            $solicitud->setDispositivo($dispositivo);
+                            $solicitud->setPersonaFisica($personaFisica);
+                            $solicitud->setPersonaJuridica($personaJuridica);
+                            $solicitud->setFechaUso(new \DateTime('now'));
+                            $solicitud->setUsada(true);
+                            $message = 'Datos completados con Exito.';
+                            $flagOk = true;
+                            $redirectForError = false;
                             $data = null;
-                            $solicitud = null;
-
+                            break;
+                        case '3':
+                            $this->auxSrv->createKeycloakcAndDatabaseUser($personaFisica, $solicitud, $ambiente);
+                            $this->auxSrv->createUsuarioDispositivo($dispositivo, $solicitud->getUsuario(), UsuarioDispositivo::NIVEL_2);
+                            $solicitud->setFechaAlta(new DateTime());
+                            $message = "Invitación aceptada con exito.";
+                            $flagOk = true;
+                            $redirectForError = false;
+                            $data = null;
                             break;
                     }
 
@@ -804,7 +804,6 @@ class ValidarSolicitudSrv extends AbstractController
         }
 
         /**
-         * //TODO: Posiblemente no es inconsistencia
          * escenario 18: INCONSISTENCIA
          * Paso 1:
          * Paso 2: 
@@ -839,20 +838,73 @@ class ValidarSolicitudSrv extends AbstractController
         }
 
         /**
-         * escenario 20: INCONSISTENCIA
+         * escenario 20: 
          * Paso 1:
          * Paso 2: 
          * Paso 3:
-         * Inicia:
+         * Inicia: Extranet
          * Observaciones:
          */
         if (!$personaFisica && $personaJuridica && $dispositivo && !$usuario && !$usuarioDispositivo) {
             if ($debugMode) {
                 $this->addFlash('success', 'Escenario: 20 - Paso: ' . $paso . ' - Ambiente: ' . $ambiente);
             }
-            $salida = $this->accionesSobreInconsistencias('20');
+            switch ($ambiente) {
+                case 'Extranet':
+                    switch ($paso) {
+                        case '1':
+                            $hash = md5(uniqid(rand(), true));
+                            $solicitud->setHash($hash);
+                            $solicitud->setRealm($extranetRealm);
+                            $solicitud->setOrigen($this->getUser());
+                            $solicitud->setPersonaJuridica($personaJuridica);
+                            //TODO:Modificar template de email paso 1 - texto
+                            $this->auxSrv->EnviarCorreoInvitacion($solicitud);
+                            $flagOk = true;
+                            $redirectForError = false;
+                            $data = null;
+                            $message = 'Invitación generada correctamente.';
+                        case '2':
+                            $solicitud->setPersonaJuridica($personaJuridica);
+                            $solicitud->setFechaUso(new \DateTime('now'));
+                            $solicitud->setUsada(true);
+                            $message = 'Datos completados con Exito.';
+                            $flagOk = true;
+                            $redirectForError = false;
+                            $data = null;
+                            break;
+                        case '3':
+                            $message = 'Ha ocurrido un error en el proceso de generar los datos de la Persona Física. contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.';
+                            $flagOk = false;
+                            $redirectForError = true;
+                            $data = null;
+                            break;
+                    }
 
-            return $salida;
+                    break;
+
+                case 'Intranet':
+                    switch ($paso) {
+                        case '1':
+                        case '2':
+                        case '3':
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $flagOk = false;
+                            $redirectForError = true;
+                            $data = null;
+                            $solicitud = null;
+                            //Crea un nuevo usuario de Extranet en KC, en la DB y envía un email con los datos de acceso
+                            /*   $this->auxSrv->createKeycloakcAndDatabaseUser($personaFisica, $solicitud, 'Extranet');
+                            $this->auxSrv->createUsuarioDispositivo($dispositivo,$solicitud->getUsuario(),UsuarioDispositivo::NIVEL_2); */
+                            //$flagOk = false;
+                            //$redirectForError = true;
+                            //$data = null;
+                            //$solicitud = null;
+                            break;
+                    }
+
+                    break;
+            }
         }
 
         /**

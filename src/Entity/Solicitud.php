@@ -132,6 +132,7 @@ class Solicitud
         $fechaExpiracion = $creacion->modify('+7 days');
 
         $this->creacion = $creacion;
+        $this->fechaUso = null;
         $this->usada = false;
         $this->fechaExpiracion = $fechaExpiracion;
     }

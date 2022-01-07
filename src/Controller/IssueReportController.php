@@ -47,4 +47,12 @@ class IssueReportController extends AbstractController
 
     }
     
+
+    #[Route('/escenarios/escenarios', name: 'escenarios', methods: ['GET'])]
+    public function escenarios(): Response
+    {
+        $response = new Response($this->renderView('escenarios/index.html.twig', []));
+        return $response;
+    }
+
 }

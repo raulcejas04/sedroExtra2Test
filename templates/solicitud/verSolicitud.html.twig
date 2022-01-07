@@ -10,6 +10,10 @@
                 <div class="card-header">
                     <h4 class="card-title">Solicitud de alta de usuario en dispositivo <b>{{ solicitud.nicname }}</b></h4>              
                 </div>
+                <h3>Usuario Solicitante</h3>
+                <ul>
+                  <li><b>{{ solicitud.origen.personaFisica.apellido }}, {{ solicitud.origen.personaFisica.nombres }}</li>
+                </ul>
                 {% if solicitud.personaFisica %}
                     <h3>Datos: Persona Física</h3>
                     <ul>

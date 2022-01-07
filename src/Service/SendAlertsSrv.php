@@ -11,6 +11,7 @@ use App\Entity\Alertas;
 use App\Repository\AlertasRepository;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use DateTime;
 use GuzzleHttp;
 
 
@@ -51,6 +52,7 @@ class SendAlertsSrv extends AbstractController {
         $url = $this->generateUrl('escenarios');
         foreach ($users as $user) {
             $alerta = new Alertas();
+            $alerta->setCreatedat(new DateTime());
             $alerta->setTitulo('Se ha llegado al escenario #' . $escenario);
             $alerta->setDescripcion(
                 'El usuario '. $user->getPersonaFisica()->getNombres() . ' ' . $user->getPersonaFisica()->getApellido() . ' ha llegado al escenario #' . $escenario .

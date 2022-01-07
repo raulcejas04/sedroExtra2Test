@@ -59,6 +59,7 @@ class OAuthController extends AbstractController
 						'refresh_token' => $refreshToken
 				]];    
 
+                
 	$client = new GuzzleHttp\Client();
 	$res = $client->post($uri, $params);
 	$data = json_decode($res->getBody());
@@ -76,7 +77,7 @@ class OAuthController extends AbstractController
         $request->session->invalidate();
         $request->user_is_logged_in = false;*/
         
-        return $this->redirectToRoute('dashboard');
+        return $this->redirectToRoute('home');
     }
 
 
