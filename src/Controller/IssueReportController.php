@@ -29,13 +29,11 @@ class IssueReportController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $this->getUser();
-            
-            $this->sendAlertsSrv->sendIssueReportAlertsToSuperAdmins($issueReport, $user);
-            
             $issueReport->setUsuario($user);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($issueReport);
             $entityManager->flush();
+            $this->sendAlertsSrv->sendIssueReportAlertsToSuperAdmins($issueReport, $user);
             $this->addFlash('success', 'Gracias por reportar un problema. Lo solucionaremos lo antes posible');
             return $this->redirectToRoute('solicitudes', [], Response::HTTP_SEE_OTHER);
         }

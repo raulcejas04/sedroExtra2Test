@@ -80,6 +80,7 @@ class AuxSrv extends AbstractController
                     [],
                     urlGeneratorInterface::ABSOLUTE_URL
                 ),
+                'nombre'=>$solicitud->getPersonaFisica()
             ]);
         $solicitud->setUsuario($usuarioDB);
         $this->mailer->send($email);
@@ -161,7 +162,8 @@ class AuxSrv extends AbstractController
             ->htmlTemplate('emails/invitacionPasoUno.html.twig')
             ->context([
                 'nicname' => $solicitud->getNicname(),
-                'url' => $url
+                'url' => $url,
+                'cuil'=>$solicitud->getCuil()
             ]);
 
         $this->mailer->send($email);

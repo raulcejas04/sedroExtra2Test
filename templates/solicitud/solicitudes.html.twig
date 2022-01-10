@@ -89,13 +89,13 @@
                                 {% endif %}
                                 
                                 {% if solicitud.correccion %}
-                                    <span class="badge rounded-pill bg-warning">Rechazado</span>
+                                    <span class="badge rounded-pill bg-danger">Rechazado</span>
                                 {% endif %}
                                 
                                 {% if solicitud.fechaUso == null %}
                                     <span class="badge rounded-pill bg-info">Esperando datos</span>
                                 {% endif %}
-                                  {% if solicitud.fechaUso != null and solicitud.fechaAlta == null %}
+                                  {% if solicitud.fechaUso != null and solicitud.fechaAlta == null and solicitud.correccion == false %}
                                     <span class="badge rounded-pill bg-info">Esperando resolución</span>
                                 {% endif %}
                             </td>

@@ -255,7 +255,7 @@ class SolicitudController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $solicitud->setAceptada(false);
-            $solicitud->setCorrecion(false);
+            $solicitud->setCorreccion(true);
             $email = (new TemplatedEmail())
                 ->from($this->getParameter('direccion_email_salida'))
                 ->to($solicitud->getMail())

@@ -15,11 +15,13 @@ use DateTime;
 use GuzzleHttp;
 
 
-class SendAlertsSrv extends AbstractController {
+class SendAlertsSrv extends AbstractController
+{
     private $client;
     private $parameterBag;
 
-    public function __construct(ParameterBagInterface $parameterBag) {
+    public function __construct(ParameterBagInterface $parameterBag)
+    {
         $this->client = new GuzzleHttp\Client();
         $this->parameterBag = $parameterBag;
     }
@@ -28,16 +30,19 @@ class SendAlertsSrv extends AbstractController {
      * No está del todo claro, pero 'Usuario' es quien inicia el reporte de incidencia,
      * y 'User' es cada superadministrador
      */
-    public function sendIssueReportAlertsToSuperAdmins($issueReport, $usuario) {
+    public function sendIssueReportAlertsToSuperAdmins($issueReport, $usuario)
+    {
         $users = $this->getAllSuperAdminUsers();
-        $url = $this->generateUrl('issue_report_show', ['id' => $issueReport->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+       // $url = $this->generateUrl('issue_report_show', ['id' => $issueReport->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $url = $this->getParameter('intranet_app_url') . "/issues-reports/{id}";
+        $url = str_replace("{id}", $issueReport->getId(), $url);
         foreach ($users as $user) {
             $alerta = new Alertas();
-            $alerta->setTitulo('Issue Report de '. $user->getPersonaFisica()->getNombres() . ' ' . $user->getPersonaFisica()->getApellido());
+            $alerta->setTitulo('Issue Report de ' . $user->getPersonaFisica()->getNombres() . ' ' . $user->getPersonaFisica()->getApellido());
             $alerta->setDescripcion(
-                'El usuario '. $usuario->getPersonaFisica()->getNombres() . ' ' . $usuario->getPersonaFisica()->getApellido() . ' ha reportado una incidencia ' .
-                'con el siguiente mensaje: ' . $issueReport->getIssue() . '. /n/n' .    ' <a href="' . $url . '">ver Aquí</a>'
-                );
+                'El usuario ' . $usuario->getPersonaFisica()->getNombres() . ' ' . $usuario->getPersonaFisica()->getApellido() . ' ha reportado una incidencia ' .
+                    'con el siguiente mensaje: ' . $issueReport->getIssue() . '. /n/n' .    ' <a href="' . $url . '">ver Aquí</a>'
+            );
             $alerta->setUsuario($user);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($alerta);
@@ -47,7 +52,8 @@ class SendAlertsSrv extends AbstractController {
         return;
     }
 
-    public function sendBadStageAlertToSuperAdmins($escenario) {
+    public function sendBadStageAlertToSuperAdmins($escenario)
+    {
         $users = $this->getAllSuperAdminUsers();
         $url = $this->generateUrl('escenarios');
         foreach ($users as $user) {
@@ -55,9 +61,9 @@ class SendAlertsSrv extends AbstractController {
             $alerta->setCreatedat(new DateTime());
             $alerta->setTitulo('Se ha llegado al escenario #' . $escenario);
             $alerta->setDescripcion(
-                'El usuario '. $user->getPersonaFisica()->getNombres() . ' ' . $user->getPersonaFisica()->getApellido() . ' ha llegado al escenario #' . $escenario .
-                ' <a href="' . $url . '">ver Aquí los escenarios posibles</a>'
-                );
+                'El usuario ' . $user->getPersonaFisica()->getNombres() . ' ' . $user->getPersonaFisica()->getApellido() . ' ha llegado al escenario #' . $escenario .
+                    ' <a href="' . $url . '">ver Aquí los escenarios posibles</a>'
+            );
             $alerta->setUsuario($user);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($alerta);
@@ -67,7 +73,8 @@ class SendAlertsSrv extends AbstractController {
         return;
     }
 
-    private function getAllSuperAdminUsers() {
+    private function getAllSuperAdminUsers()
+    {
         $userRepository = $this->getDoctrine()->getRepository(User::class);
         $users = $userRepository->getAllSuperAdminUsers();
         return $users;

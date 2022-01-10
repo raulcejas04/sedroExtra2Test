@@ -19,6 +19,11 @@ class IssueReport
     private $id;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $titulo;
+
+    /**
      * @ORM\Column(type="text")
      */
     private $issue;

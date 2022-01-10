@@ -15,6 +15,8 @@ use App\Service\KeycloakApiSrv;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\AuxSrv;
 use DateTime;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 class ValidarSolicitudSrv extends AbstractController
 {
@@ -24,8 +26,9 @@ class ValidarSolicitudSrv extends AbstractController
     private $em;
     private $auxSrv;
     private $sendAlertsSrv;
+    private $router;
 
-    public function __construct(ParameterBagInterface $parameterBag, KeycloakApiSrv $kc, EntityManagerInterface $em, SendAlertsSrv $sendAlertsSrv, AuxSrv $auxSrv)
+    public function __construct(ParameterBagInterface $parameterBag, KeycloakApiSrv $kc, EntityManagerInterface $em, SendAlertsSrv $sendAlertsSrv, AuxSrv $auxSrv,RouterInterface $router)
     {
         $this->client = new GuzzleHttp\Client();
         $this->parameterBag = $parameterBag;
@@ -33,6 +36,7 @@ class ValidarSolicitudSrv extends AbstractController
         $this->em = $em;
         $this->sendAlertsSrv = $sendAlertsSrv;
         $this->auxSrv = $auxSrv;
+        $this->router = $router;
     }
 
     //public function validarSolicitud($solicitud){
@@ -56,7 +60,7 @@ class ValidarSolicitudSrv extends AbstractController
         $redirectForError = false;
         $data = null;
         $message = "";
-
+        $issuePath =  $this->router->generate('issue_report_new',[],UrlGeneratorInterface::ABSOLUTE_URL);
         //El debugMode habilita los flash para saber a que escenario entró el validador.
         //Poner en false en producción.
         $debugMode = true;
@@ -140,6 +144,7 @@ class ValidarSolicitudSrv extends AbstractController
                         case '3':
                             $this->auxSrv->createUsuarioDispositivo($dispositivo, $usuario,UsuarioDispositivo::NIVEL_2);
                             $solicitud->setFechaAlta(new DateTime());
+                            $solicitud->setCorreccion(false);
                             $message = 'El usuario, la persona física, la persona jurídica y el dispositivo existían con anterioridad.';
                             $message .= 'Se ha vinculado el usuario ' . $usuario->getPersonaFisica()->getNombres() . ' ' . $usuario->getPersonaFisica()->getApellido() . '(' . $usuario->getUsername() . ')' . ' a ' . $dispositivo->getNicname();
                             $flagOk = true;
@@ -155,7 +160,7 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                         case '2':
                         case '3':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -229,6 +234,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $this->auxSrv->createKeycloakcAndDatabaseUser($personaFisica, $solicitud, $ambiente);
                             $this->auxSrv->createUsuarioDispositivo($dispositivo, $solicitud->getUsuario(), UsuarioDispositivo::NIVEL_2);
                             $solicitud->setFechaAlta(new DateTime());
+                            $solicitud->setCorreccion(false);
                             $message = "Invitación aceptada con exito.";
                             $flagOk = true;
                             $redirectForError = false;
@@ -243,7 +249,7 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                         case '2':
                         case '3':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -314,7 +320,7 @@ class ValidarSolicitudSrv extends AbstractController
 
                             break;
                         case '2':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             //$flagOk = false;
                             //$redirectForError = true;
                             //$data = null;
@@ -398,7 +404,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $message = 'Invitación generada correctamente.';
                             break;
                         case '2':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -406,6 +412,8 @@ class ValidarSolicitudSrv extends AbstractController
                             break;
                         case '3':
                             $this->auxSrv->createDispositivoAndUserDispositivo($solicitud);
+                            $solicitud->setFechaAlta(new DateTime());
+                            $solicitud->setCorreccion(false);
                             $flagOk = true;
                             $redirectForError = false;
                             $data = null;
@@ -500,7 +508,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $message = 'Invitación generada correctamente.';
                             break;
                         case '2':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             //$flagOk = false;
                             //$redirectForError = true;
                             //$data = null;
@@ -510,6 +518,8 @@ class ValidarSolicitudSrv extends AbstractController
                         case '3':
                             $this->auxSrv->createKeycloakcAndDatabaseUser($personaFisica, $solicitud, 'Extranet');
                             $this->auxSrv->createDispositivoAndUserDispositivo($solicitud);
+                            $solicitud->setFechaAlta(new DateTime());
+                            $solicitud->setCorreccion(false);
                             $flagOk = true;
                             $redirectForError = false;
                             $data = null;
@@ -668,7 +678,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $message = 'Invitación generada correctamente.';
                             break;
                         case '2':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -764,7 +774,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $message = 'Invitación generada correctamente.';
                             break;
                         case '2':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -772,6 +782,7 @@ class ValidarSolicitudSrv extends AbstractController
 
                             break;
                         case '3':
+                            $message = "Ha ocurrido un error en el proceso y la Persona Juridica no ha sido creada.";
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -874,7 +885,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $data = null;
                             break;
                         case '3':
-                            $message = 'Ha ocurrido un error en el proceso de generar los datos de la Persona Física. contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.';
+                            $message = 'Ha ocurrido un error en el proceso de generar los datos de la Persona Física. contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -888,7 +899,7 @@ class ValidarSolicitudSrv extends AbstractController
                         case '1':
                         case '2':
                         case '3':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -1017,7 +1028,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $message = 'Invitación generada correctamente.';
                             break;
                         case '2':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             $flagOk = false;
                             $redirectForError = true;
                             $data = null;
@@ -1215,7 +1226,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $message = 'Invitación generada correctamente.';
                             break;
                         case '2':
-                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="{{ path("issue_report_new") }}>haciendo clic aquí y danos un poco de contexto.</a>';
+                            $message = 'Seccion destinada a invitados en la extranet por solicitud. Si crees que es un error contacta a soporte <a href="'.$issuePath.'">haciendo clic aquí y danos un poco de contexto.</a>';
                             //$flagOk = false;
                             //$redirectForError = true;
                             //$data = null;
