@@ -95,6 +95,11 @@
                                 {% if solicitud.fechaUso == null %}
                                     <span class="badge rounded-pill bg-info">Esperando datos</span>
                                 {% endif %}
+                                
+                                {% if solicitud.fechaAlta is null and solicitud.fechaUso == null and solicitud.fechaExpiracion < date() %}
+                                     <span class="badge rounded-pill bg-warning">Expirada</span>
+                                {% endif %}
+
                                   {% if solicitud.fechaUso != null and solicitud.fechaAlta == null and solicitud.correccion == false %}
                                     <span class="badge rounded-pill bg-info">Esperando resolución</span>
                                 {% endif %}

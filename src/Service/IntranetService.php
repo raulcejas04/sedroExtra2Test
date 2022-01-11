@@ -52,7 +52,7 @@ class IntranetService
         ];
 
         $res = $this->client->post($uri, $params);
-        
+
         return $res;
     }
 
@@ -116,4 +116,19 @@ class IntranetService
         return json_decode($res->getBody());
     }
 
+    public function updateUserPassword($id, $password)
+    {
+        $base_uri = $this->parameterBag->get('intranet_app_url');
+        $uri = $base_uri . '/public/api/update/user/password';
+        $params = [
+            'json' => [
+                'id' => $id,
+                'realm' => $this->parameterBag->get('keycloak_realm'),
+                'password' => $password
+            ]
+        ];
+
+        $res = $this->client->post($uri, $params);
+        return $res;
+    }
 }

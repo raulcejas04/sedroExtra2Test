@@ -8,12 +8,15 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ChangePasswordType;
 use Symfony\Component\HttpFoundation\Request;
 use App\Controller\KeycloakFullApiController;
+use App\Service\IntranetService;
 use Symfony\Component\Validator\Constraints\All;
 
 class ChangePasswordController extends AbstractController
 {
-    public function __construct(KeycloakFullApiController $keycloak){
-    	$this->keycloak = $keycloak;
+    private $intranetService;
+
+    public function __construct(IntranetService $intranetService){
+    	$this->intranetService = $intranetService;
     }
 
     #[Route('/dashboard/change/password', name: 'change_password')]
@@ -24,12 +27,9 @@ class ChangePasswordController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $id = $this->getUser()->getKeycloakId();
-            $realm = $this->getParameter('keycloak_realm');
             $dataForm = $request->request->all();
             $password = $dataForm['change_password']['password']['first'];
-            
-            $this->keycloak->resetPasswordUser($id, $this->getParameter('keycloak_realm'), $password);
-            $exito = $this->keycloak->changeUserPassword($id, $realm, $password);
+            $exito = $this->intranetService->updateUserPassword($id, $password);
             if ($exito->getStatusCode() == 500) {
                 $this->addFlash('warning', 'No fue posible actualizar la contraseña');                
             } else {

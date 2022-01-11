@@ -74,7 +74,7 @@ class SolicitudController extends AbstractController
         $entityManager = $this->getDoctrine()->getManager();
 
         $realm = $entityManager->getRepository(Realm::class)->findOneBy(['realm' => $this->getParameter('keycloak_realm')]);
-        $solicitudes = $entityManager->getRepository(Solicitud::class)->findSolicitudes($realm,$this->getUser());
+        $solicitudes = $entityManager->getRepository(Solicitud::class)->findSolicitudes($realm, $this->getUser());
         $response = $this->renderView('solicitud\solicitudes.html.twig', [
             'solicitudes' => $solicitudes
         ]);
@@ -117,6 +117,12 @@ class SolicitudController extends AbstractController
             //TODO: Que no se pueda errar de hash más de 5 veces por IP por hora}
             return $this->redirectToRoute('home');
         }
+
+        if ($solicitud->getFechaExpiracion() < new DateTime()) {
+            $this->addFlash('danger', 'La solicitud ha expirado.');
+            return $this->redirectToRoute('home');
+        }
+
         if ($solicitud->getUsada() == true) {
             $this->addFlash('danger', 'Ya ha ingresado los datos anteriormente para ésta solicitud');
             //TODO: que redirija al home cuando el mismo esté listo
@@ -200,6 +206,10 @@ class SolicitudController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($solicitud->getFechaExpiracion() < new DateTime()) {
+                $fechaExpiracion = (new DateTime())->modify('+7 days');
+                $solicitud->setFechaExpiracion($fechaExpiracion);
+            }
             $url = $this->generateUrl('solicitud-paso-2', ["hash" => $solicitud->getHash()], UrlGeneratorInterface::ABSOLUTE_URL);
             $email = (new TemplatedEmail())
                 ->from($this->getParameter('direccion_email_salida'))
@@ -209,10 +219,13 @@ class SolicitudController extends AbstractController
                 ->context([
                     'nicname' => $solicitud->getNicname(),
                     'url' => $url,
-                    'cuil'=>$solicitud->getPersonaFisica()->getCuitCuil()
+                    'cuil' => $solicitud->getPersonaFisica()->getCuitCuil()
                 ]);
 
             $mailer->send($email);
+
+            $entityManager->persist($solicitud);
+            $entityManager->flush();
 
             return new JsonResponse([
                 "status" => "success",
@@ -292,7 +305,12 @@ class SolicitudController extends AbstractController
 
         $solicitudActiva = $entityManager->getRepository('App\Entity\Solicitud')->findSolicitudActiva($solicitud->getMail(), $solicitud->getNicname(), $solicitud->getCuit(), $solicitud->getCuil());
         if ($solicitudActiva) {
-            $this->addFlash('danger', 'Existe una solicitud activa con esos datos. (La persona con CUIT ' . $solicitud->getCuil() . ' aún no envió los datos solicitados)');
+            if (!$solicitudActiva->getFechaUso()) {
+                $this->addFlash('danger', 'Existe una solicitud activa con esos datos. (La persona con CUIT ' . $solicitud->getCuil() . ' aún no envió los datos solicitados)');
+            } else {
+                $this->addFlash('danger', 'Existe una solicitud activa con esos datos.');
+            }
+
             return true;
         } else {
             return false;
