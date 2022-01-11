@@ -63,7 +63,7 @@ class ValidarSolicitudSrv extends AbstractController
         $issuePath =  $this->router->generate('issue_report_new',[],UrlGeneratorInterface::ABSOLUTE_URL);
         //El debugMode habilita los flash para saber a que escenario entró el validador.
         //Poner en false en producción.
-        $debugMode = false;
+        $debugMode = true;
 
         //TODO: validar antes de cada switch si está activa o no la solicitud
 
@@ -129,6 +129,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $redirectForError = false;
                             $data = null;
                             $message = 'Invitación generada correctamente.';
+                            break;
                         case '2':
                             $solicitud->setDispositivo($dispositivo);
                             $solicitud->setPersonaFisica($personaFisica);
@@ -219,6 +220,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $redirectForError = false;
                             $data = null;
                             $message = 'Invitación generada correctamente.';
+                            break;
                         case '2':
                             $solicitud->setDispositivo($dispositivo);
                             $solicitud->setPersonaFisica($personaFisica);
@@ -875,6 +877,7 @@ class ValidarSolicitudSrv extends AbstractController
                             $redirectForError = false;
                             $data = null;
                             $message = 'Invitación generada correctamente.';
+                            break;
                         case '2':
                             $solicitud->setPersonaJuridica($personaJuridica);
                             $solicitud->setFechaUso(new \DateTime('now'));
