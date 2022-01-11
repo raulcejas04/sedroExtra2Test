@@ -208,7 +208,8 @@ class SolicitudController extends AbstractController
                 ->htmlTemplate('emails/invitacionPasoUno.html.twig')
                 ->context([
                     'nicname' => $solicitud->getNicname(),
-                    'url' => $url
+                    'url' => $url,
+                    'cuil'=>$solicitud->getPersonaFisica()->getCuitCuil()
                 ]);
 
             $mailer->send($email);

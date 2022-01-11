@@ -63,7 +63,7 @@ class ValidarSolicitudSrv extends AbstractController
         $issuePath =  $this->router->generate('issue_report_new',[],UrlGeneratorInterface::ABSOLUTE_URL);
         //El debugMode habilita los flash para saber a que escenario entró el validador.
         //Poner en false en producción.
-        $debugMode = true;
+        $debugMode = false;
 
         //TODO: validar antes de cada switch si está activa o no la solicitud
 
