@@ -1,42 +1,32 @@
-<div class="clearfix"></div>
+{% set showMessages = false  %}
+{% set msgSuccess = app.flashes('success')   %}
+{% set msgWarning = app.flashes('warning')   %}
+{% set msgDanger = app.flashes('danger')   %}
+{% set msgInfo = app.flashes('info')   %}
 
-<div class="row">
-    <div class="col-lg-10 col-md-10 col-sd-10 col-xs-12 col-lg-offset-1 col-md-offset-1 col-sd-offset-1">
+{% if msgSuccess|length>0 %}{% set showMessages = true  %}{% endif %}
+{% if msgWarning|length>0 %}{% set showMessages = true  %}{% endif %}
+{% if msgDanger|length>0 %}{% set showMessages = true  %}{% endif %}
+{% if msgInfo|length>0 %}{% set showMessages = true  %}{% endif %}
+     
+{% if showMessages %}
+  <div class="clearfix"></div>
+  <div class="row">
+    {% if msgSuccess|length>0 %}
+        <div class="alert alert-success" role="alert">{% for message in msgSuccess %}- {{ message|raw }}<br>{% endfor %}</div>
+    {% endif  %}
 
-        {% for flashMessage in app.flashes('success') %}
-            <section class="mensajes-flash">
-                <div class="alert alert-success alert-dismissable alertas center-block">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <div class="center-block text-center flash-fonts">{{ flashMessage | raw  }}</div>
-                </div>
-            </section>
-        {% endfor %}
-        {% for flashMessage in app.flashes('warning') %}
-            <section class="mensajes-flash">
-                <div class="alert alert-warning alert-dismissable alertas center-block">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <div class="center-block text-center">{{ flashMessage | raw  }}</div>
-                </div>
-            </section>
-        {% endfor %}
-        {% for flashMessage in app.flashes('danger') %}
-            <section class="mensajes-flash">
-                <div class="alert alert-danger alert-dismissable alertas center-block">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <div class="center-block text-center">{{ flashMessage | raw }}</div>
-                </div>
-            </section>
-        {% endfor %}
-        {% for flashMessage in app.flashes('info') %}
-            <section class="mensajes-flash">
-                <div class="alert alert-info alert-dismissable alertas center-block">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <div class="text-center text-center">{{ flashMessage | raw  }}</div>
-                </div>
-            </section>
-        {% endfor %}
+    {% if msgWarning|length>0 %}
+        <div class="alert alert-warning" role="alert">{% for message in msgWarning %}- {{ message|raw }}<br>{% endfor %}</div>
+    {% endif  %}
 
-    </div>
-</div>
+    {% if msgDanger|length>0 %}
+        <div class="alert alert-danger" role="alert">{% for message in msgDanger %}- {{ message|raw }}<br>{% endfor %}</div>
+    {% endif  %}
 
-<div class="clearfix"></div>
+    {% if msgInfo|length>0 %}
+        <div class="alert alert-info" role="alert">{% for message in msgInfo %}- {{ message|raw }}<br>{% endfor %}</div>
+    {% endif  %}
+  </div>
+  <div class="clearfix"></div>
+{% endif  %}
