@@ -13,6 +13,7 @@ use App\Entity\Dispositivo;
 use App\Entity\DispositivoResponsable;
 use App\Entity\Realm;
 use App\Entity\Solicitud;
+use App\Entity\User;
 use App\Form\NuevaSolicitudType;
 use App\Form\PasoDosType;
 use App\Form\RechazarSolicitudType;
@@ -43,8 +44,12 @@ class SolicitudController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
-            //Verifica si ya existe una solicitud activa
+            //Verifica si ya existe una solicitud activa 
             if ($this->verificarSolicitud($solicitud) == true) {
+                return $this->redirectToRoute('dashboard');
+            }
+            //Verifica que en caso de no existir la PF o no existir el usuario, el correo ingresado no exista en la db para no tener problemas en KC.
+            if ($this->verificarEmailSolicitud($solicitud) == true) {
                 return $this->redirectToRoute('dashboard');
             }
 
@@ -206,6 +211,13 @@ class SolicitudController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($this->verificarEmailSolicitud($solicitud,false) == true) {
+                return new JsonResponse([
+                    "status" => "error",
+                    "message" => "Error, ya existe un usuario registrado con el Email ingresado. Intente nuevamente con otro Email."
+                ]);
+            }
+
             if ($solicitud->getFechaExpiracion() < new DateTime()) {
                 $fechaExpiracion = (new DateTime())->modify('+7 days');
                 $solicitud->setFechaExpiracion($fechaExpiracion);
@@ -214,12 +226,12 @@ class SolicitudController extends AbstractController
             $email = (new TemplatedEmail())
                 ->from($this->getParameter('direccion_email_salida'))
                 ->to($solicitud->getMail())
-                ->subject('Invitación para dar de alta usuario y dispositivo nuevo')
+                ->subject('Invitación a dispositivo')
                 ->htmlTemplate('emails/invitacionPasoUno.html.twig')
                 ->context([
                     'nicname' => $solicitud->getNicname(),
                     'url' => $url,
-                    'cuil' => $solicitud->getPersonaFisica()->getCuitCuil()
+                    'cuil' => $solicitud->getCuil()
                 ]);
 
             $mailer->send($email);
@@ -302,7 +314,6 @@ class SolicitudController extends AbstractController
     private function verificarSolicitud($solicitud)
     {
         $entityManager = $this->getDoctrine()->getManager();
-
         $solicitudActiva = $entityManager->getRepository('App\Entity\Solicitud')->findSolicitudActiva($solicitud->getMail(), $solicitud->getNicname(), $solicitud->getCuit(), $solicitud->getCuil());
         if ($solicitudActiva) {
             if (!$solicitudActiva->getFechaUso()) {
@@ -312,8 +323,26 @@ class SolicitudController extends AbstractController
             }
 
             return true;
-        } else {
-            return false;
         }
+
+        return false;
+    }
+
+    private function verificarEmailSolicitud($solicitud, $flash = true)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $realm = $entityManager->getRepository(Realm::class)->findOneBy(["realm" => $this->getParameter('keycloak_realm')]);
+        $existingUser = $entityManager->getRepository(User::class)->findOneBy(["username" => $solicitud->getCuil()]);
+
+        if (!$existingUser) {
+            $existingEmail = $entityManager->getRepository(User::class)->findOneBy(["email" => $solicitud->getMail(), "realm" => $realm, "fechaEliminacion" => null]);
+            if ($existingEmail) {
+                if($flash){
+                    $this->addFlash('danger', 'Error, ya existe un usuario registrado con el Email ingresado. Intente nuevamente con otro Email.');
+                }
+                return true;
+            }
+        }
+        return false;
     }
 }
